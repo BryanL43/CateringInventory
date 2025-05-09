@@ -2,7 +2,7 @@
 
 ## Overview
 This project is a mock backend RDBMs java application to simulate an airline catering inventory system.
-It uses Maven framework and JDBC to interact with the `AWS RDS` database.
+It uses `Maven` framework and JDBC to interact with the `AWS RDS` database.
 
 ## Installation
 
@@ -26,15 +26,19 @@ Note: Do not include any quotation marks on any of the environment variables.
 
 
 ## Specs
+Specs referenced in `pom.xml` under dependencies.
 
 ### MySQL Connector
-Reference in `pom.xml` under dependencies.
 ```sh
 version: 8.0.33
 ```
-
 [MySQL Connector 8.0.33 Source](https://repo.maven.apache.org/maven2/mysql/mysql-connector-java/8.0.33/)
 
+### JUnit Jupiter
+```sh
+version: 5.10.0
+```
+[JUnit Jupiter 5.10.0 Source](https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api/5.10.0)
 
 ## Troubleshooting
 - Ensure the `.env` file is configured correctly.

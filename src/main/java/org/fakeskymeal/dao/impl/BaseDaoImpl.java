@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.fakeskymeal.dao.BaseDto;
+import org.fakeskymeal.dto.BaseDto;
 import org.fakeskymeal.dao.exception.DaoException;
 import util.jdbc.JdbcConnection;
 
@@ -22,14 +22,9 @@ import util.jdbc.JdbcConnection;
  *
  * 		04/20/2024 - jhui - Created
  */
-
-
-
 public abstract class BaseDaoImpl {
 
-    public BaseDaoImpl() {
-        // TODO Auto-generated constructor stub
-    }
+    public BaseDaoImpl() {}
 
     abstract void convertRStoDto(ResultSet results, BaseDto dto) throws DaoException;
     abstract String getAllRowsQuery();
@@ -119,11 +114,12 @@ public abstract class BaseDaoImpl {
     List<BaseDto> getMultipleRows(String field, Object value) throws DaoException {
         List<BaseDto> all = new ArrayList<BaseDto>();;
         BaseDto dto = null;
+        Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet result = null;
 
         try {
-            Connection conn =  JdbcConnection.getConnection();
+            conn =  JdbcConnection.getConnection();
             //String allRowsQuery = getAllRowsQuery();
             String allRowsQuery = Objects.requireNonNull(getAllRowsQuery(), "Query not found for getAllRowsQuery() for class, " + this.getClass().getName());
             if (field != null) {
@@ -140,16 +136,13 @@ public abstract class BaseDaoImpl {
                 all.add(dto);
                 convertRStoDto(result, dto);
             }
-        }
-        catch (SQLException se) {
+        } catch (SQLException se) {
             throw new DaoException(se);
-        }
-        finally {
+        } finally {
             if (result != null) {
                 try {
                     result.close();
-                }
-                catch (SQLException se) {
+                } catch (SQLException se) {
                     System.out.println("Error closing ResultSet: " + se.getMessage());
                 }
             }
@@ -157,11 +150,17 @@ public abstract class BaseDaoImpl {
             if (stmt != null) {
                 try {
                     stmt.close();
-                }
-                catch (SQLException se) {
+                } catch (SQLException se) {
                     System.out.println("Error closing Statement: " + se.getMessage());
                 }
             }
+
+            if (conn != null) {
+                JdbcConnection.resetConnection();
+            }
+
+            System.out.print("Confirm connection close. Expect: null; got: ");
+            JdbcConnection.checkStatus();
         }
 
         return all;

@@ -1,4 +1,4 @@
-package org.fakeskymeal.dao;
+package org.fakeskymeal.dto;
 
 import java.lang.reflect.Field;
 
@@ -86,10 +86,8 @@ public class BaseDto {
             json.append("\": \"");
             try {
                 json.append(fields[i].get(this));
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 System.out.println("Exception in toJson: " + e.getMessage());
-
                 throw new RuntimeException(e);
             }
             json.append("\"");

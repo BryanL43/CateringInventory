@@ -31,6 +31,8 @@ public class ConnectionTest {
 
             rs.close();
             stmt.close();
+            JdbcConnection.resetConnection();
+//            JdbcConnection.checkStatus();
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             throw new AssertionError("Test failed due to exception: " + e.getMessage());

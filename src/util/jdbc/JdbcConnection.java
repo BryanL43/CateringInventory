@@ -54,23 +54,27 @@ public class JdbcConnection {
                 _myConnection = DriverManager.getConnection(sourceURL, DB_USERNAME, DB_PASSWORD);
                 System.out.println("Connected Connection");
             } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Could not connect to the database.", e);
+                LOGGER.log(Level.SEVERE, "Could not connect to the database.", e);
             }
         }
 
         return _myConnection;
     }
 
-    void resetConnection() {
+    public static void resetConnection() {
+        System.out.println("Confirmed connection reset triggered");
         if (_myConnection != null) {
             try {
                 _myConnection.close();
-            }
-            catch (SQLException se) {
-                System.out.println("Error while closing connection: " + se.toString());
+            } catch (SQLException se) {
+                System.out.println("Error while closing connection: " + se);
             }
         }
 
         _myConnection = null;
+    }
+
+    public static void checkStatus() {
+        System.out.println(_myConnection);
     }
 }
