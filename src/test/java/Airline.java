@@ -1,54 +1,113 @@
 import java.util.List;
 
 import org.fakeskymeal.dao.AirlineDao;
+import org.fakeskymeal.dao.exception.DaoException;
 import org.fakeskymeal.dao.impl.AirlineDaoImpl;
 import org.fakeskymeal.dto.AirlineDto;
 
-/**
- * Airline
- *
- * Test class to access for Airline.
- */
+import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 public class Airline {
+    private AirlineDao airlineDao;
 
-    public Airline() {
-
+    @BeforeEach
+    void setUp() {
+        airlineDao = new AirlineDaoImpl();
     }
 
-    public static void main(String[] args) {
-        System.out.println("Entering test.Airline.main");
+    @Test
+    void testGetById() throws DaoException {
+        int existingId = 16;
+        AirlineDto airlineDto = airlineDao.get(existingId);
 
-        AirlineDao airlineDao = new AirlineDaoImpl();
-        AirlineDto airlineDto = null;
-        List<AirlineDto> airlines = null;
+        assertNotNull(airlineDto);
+        assertEquals(existingId, airlineDto.getAirlineId());
+        System.out.println("Get by ID: " + airlineDto.toJson());
+    }
 
-        try {
-            int test = 3;
-            switch(test) {
-                case 1:
-                    airlineDto = airlineDao.get(2); // Acquisition by direct index
-                    System.out.println("Returned Department(1):" + airlineDto.toJson());
-                    break;
-                case 2: // Acquire a row via specified params
-                    airlineDto = airlineDao.getRow("name", "Spirit"); // can have id; p_key_id
-                    System.out.println("Returned Department(1):" + airlineDto.toJson());
-                    break;
-                case 3: // Acquire all the rows via specified params
-                    airlines = airlineDao.getRows("contact_info", "Here");
-                    for (AirlineDto airline : airlines) {
-                        airlineDto = airline;
-                        System.out.println("\nReturned Department(" + airlineDto.getAirlineId() + "):" + airlineDto.toJson());
-                    }
-                    break;
-                default: // Dump all items from said table
-                    airlines = airlineDao.getAll();
-                    for (AirlineDto airline : airlines) {
-                        airlineDto = airline;
-                        System.out.println("\nReturned Department(" + airlineDto.getAirlineId() + "):" + airlineDto.toJson());
-                    }
-            }
-        } catch (Throwable th) {
-            System.out.println(th.getMessage());
+    @Test
+    void testInvalidGetById() {
+        int missingId = -999;
+        DaoException exception = assertThrows(
+            DaoException.class,
+            () -> airlineDao.get(missingId),
+            "Expected DaoException for missing ID"
+        );
+
+        assertTrue(
+            exception.getMessage().contains("No entry found"),
+            "Expected a 'No record found' error message"
+        );
+    }
+
+    @Test
+    void testGetOneByParam() throws DaoException {
+        AirlineDto airlineDto = airlineDao.getRow("name", "Hawaiian");
+        assertNotNull(airlineDto);
+        System.out.println("Get by field: " + airlineDto.toJson());
+    }
+
+    @Test
+    void testInvalidGetOneByParam() {
+        DaoException exception = assertThrows(
+            DaoException.class,
+            () -> airlineDao.getRow("name", "This should not exist")
+        );
+
+        assertTrue(
+            exception.getMessage().contains("No entry found"),
+            "Expected a 'No record found' error message"
+        );
+    }
+
+    @Test
+    void testCRUD() throws DaoException {
+        // Insert a new test entry [Create]
+        AirlineDto testAirline = new AirlineDto();
+        testAirline.setAirlineName("Test Airline");
+        testAirline.setContactInfo("Test@example.com");
+
+        airlineDao.save(testAirline);
+        System.out.println("Inserted new airline with ID: " + testAirline.getAirlineId());
+
+        assertTrue(testAirline.getAirlineId() > 0, "Airline ID should be set after insert");
+
+        // Read the test entry [Read]
+        AirlineDto retrievedAirline = airlineDao.get(testAirline.getAirlineId());
+
+        System.out.println("Before update:");
+        System.out.println("\nReturned Department(" + retrievedAirline.getAirlineId() + "):" + retrievedAirline.toJson());
+
+        // Update the test entry [Update]
+        String[] updatedParams = {"Test Updated Airline", "Updated@example.com"};
+        airlineDao.update(retrievedAirline, updatedParams);
+
+        assertNotNull(retrievedAirline);
+        assertEquals("Test Updated Airline", retrievedAirline.getAirlineName());
+        assertEquals("Updated@example.com", retrievedAirline.getContactInfo());
+
+        System.out.println("After update:");
+        System.out.println("\nReturned Department(" + retrievedAirline.getAirlineId() + "):" + retrievedAirline.toJson());
+
+        // Delete the test entry [Delete]
+        airlineDao.delete(retrievedAirline);
+        System.out.println("Deleted airline with ID: " + retrievedAirline.getAirlineId());
+
+        // Confirm deletion
+        assertThrows(DaoException.class, () -> {
+            airlineDao.get(retrievedAirline.getAirlineId());
+        });
+    }
+
+    @Test
+    void testDumpTable() throws DaoException {
+        List<AirlineDto> airlineDtos = airlineDao.getAll();
+        assertNotNull(airlineDtos, "The airline list should not be null");
+        assertFalse(airlineDtos.isEmpty(), "Expected at least one airline record");
+
+        for (AirlineDto airlineDto : airlineDtos) {
+            System.out.println("\nReturned Department(" + airlineDto.getAirlineId() + "):" + airlineDto.toJson());
         }
     }
 }

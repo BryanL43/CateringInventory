@@ -47,6 +47,9 @@ public abstract class BaseDaoImpl {
         List<BaseDto> all = null;
 
         all = getMultipleRows(getPrimaryKey(), id);
+        if (all == null || all.isEmpty()) {
+            throw new DaoException("No entry found for id: " + id);
+        }
 
         return (BaseDto) all.getFirst();
     }
@@ -65,6 +68,9 @@ public abstract class BaseDaoImpl {
         List<BaseDto> all = null;
 
         all = getMultipleRows(field, value);
+        if (all == null || all.isEmpty()) {
+            throw new DaoException("No entry found for field: " + field);
+        }
 
         return (BaseDto) all.getFirst();
     }
@@ -83,6 +89,9 @@ public abstract class BaseDaoImpl {
         List all = null;
 
         all = getMultipleRows(field, value);
+        if (all == null || all.isEmpty()) {
+            throw new DaoException("No entry found for field: " + field);
+        }
 
         return all;
     }
@@ -99,6 +108,9 @@ public abstract class BaseDaoImpl {
         List all = null;
 
         all = getMultipleRows(null, null);
+        if (all == null || all.isEmpty()) {
+            throw new DaoException("No entry found");
+        }
 
         return all;
     }

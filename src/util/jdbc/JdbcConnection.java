@@ -62,7 +62,7 @@ public class JdbcConnection {
     }
 
     public static void resetConnection() {
-        System.out.println("Confirmed connection reset triggered");
+        System.out.println("Connection reset triggered...");
         if (_myConnection != null) {
             try {
                 _myConnection.close();
@@ -72,6 +72,7 @@ public class JdbcConnection {
         }
 
         _myConnection = null;
+        System.out.println("Connection closed successfully.");
     }
 
     public static void checkStatus() {

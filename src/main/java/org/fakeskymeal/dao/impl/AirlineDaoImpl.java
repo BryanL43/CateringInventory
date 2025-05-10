@@ -1,8 +1,7 @@
 package org.fakeskymeal.dao.impl;
 
 import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,6 +11,7 @@ import org.fakeskymeal.dao.exception.DaoException;
 
 import org.fakeskymeal.dto.BaseDto;
 import org.fakeskymeal.dto.AirlineDto;
+import util.jdbc.JdbcConnection;
 
 public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
     private static final Logger LOGGER = Logger.getLogger(AirlineDaoImpl.class.getName());
@@ -25,7 +25,7 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
 
         _airlineQueries = new Properties();
         try {
-            _airlineQueries.load( // Potential fail PATH UNDEFINED
+            _airlineQueries.load(
                 this.getClass().getClassLoader().getResourceAsStream("main/resources/sql.properties")
             );
         } catch (IOException io) {
@@ -49,8 +49,56 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      * @param AirlineDto t - DTO that contains the values for the new row
      */
     public void save(AirlineDto t) throws DaoException {
-        // TO DO: IMPLEMENT
-        return;
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet generatedKeys = null;
+
+        try {
+            conn = JdbcConnection.getConnection();
+            stmt = conn.prepareStatement(getInsertQuery(), Statement.RETURN_GENERATED_KEYS);
+
+            stmt.setString(1, t.getAirlineName());
+            stmt.setString(2, t.getContactInfo());
+
+            int rows = stmt.executeUpdate();
+            if (rows == 0) {
+                throw new DaoException("Insert failed, no rows affected.");
+            }
+
+            // Acquire the generated id for the newly inserted item
+            generatedKeys = stmt.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                int generatedId = generatedKeys.getInt(1);
+                t.setAirlineId(generatedId);
+            } else {
+                throw new DaoException("Insert succeeded, but no ID returned.");
+            }
+        } catch (SQLException se) {
+            throw new DaoException(se.getMessage());
+        } finally {
+            if (generatedKeys != null) {
+                try {
+                    generatedKeys.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing generated key: ", se.getMessage());
+                }
+            }
+
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
+                }
+            }
+
+            if (conn != null) {
+                JdbcConnection.resetConnection();
+            }
+
+            System.out.print("Confirm connection close. Expect: null; got: ");
+            JdbcConnection.checkStatus();
+        }
     }
 
     /**
@@ -64,8 +112,43 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      *
      */
     public void update(AirlineDto t, String[] params) throws DaoException {
-        // TO DO: IMPLEMENT
-        return;
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = JdbcConnection.getConnection();
+            stmt = conn.prepareStatement(getUpdateQuery());
+
+            stmt.setString(1, params[0]); // new name
+            stmt.setString(2, params[1]); // new contact_info
+            stmt.setInt(3, t.getAirlineId()); // WHERE airline_id = ?
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated == 0) {
+                throw new DaoException("Update failed: No record found with ID = " + t.getAirlineId());
+            }
+
+            // Update DTO with new values
+            t.setAirlineName(params[0]);
+            t.setContactInfo(params[1]);
+        } catch (SQLException se) {
+            throw new DaoException(se.getMessage());
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
+                }
+            }
+
+            if (conn != null) {
+                JdbcConnection.resetConnection();
+            }
+
+            System.out.print("Confirm connection close. Expect: null; got: ");
+            JdbcConnection.checkStatus();
+        }
     }
 
     /**
@@ -77,8 +160,37 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      *
      */
     public void delete(AirlineDto t) throws DaoException {
-        // TO DO: IMPLEMENT
-        return;
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = JdbcConnection.getConnection();
+            stmt = conn.prepareStatement(getDeleteQuery());
+
+            stmt.setInt(1, t.getAirlineId());
+
+            int rowsDeleted = stmt.executeUpdate();
+            if (rowsDeleted == 0) {
+                throw new DaoException("Delete failed: no record found with ID = " + t.getAirlineId());
+            }
+        } catch (SQLException se) {
+            throw new DaoException(se.getMessage());
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
+                }
+            }
+
+            if (conn != null) {
+                JdbcConnection.resetConnection();
+            }
+
+            System.out.print("Confirm connection close. Expect: null; got: ");
+            JdbcConnection.checkStatus();
+        }
     }
 
     /**
@@ -144,6 +256,17 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      */
     String getUpdateQuery() {
         return _airlineQueries.getProperty("AIRLINE_UPDATE_ID");
+    }
+
+    /**
+     * getTableName
+     *
+     * Return the Table Name
+     *
+     * @return String - Table Name
+     */
+    String getTableName() {
+        return _tableName;
     }
 
     /**
