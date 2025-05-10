@@ -119,7 +119,7 @@ public abstract class BaseDaoImpl {
         ResultSet result = null;
 
         try {
-            conn =  JdbcConnection.getConnection();
+            conn = JdbcConnection.getConnection();
             //String allRowsQuery = getAllRowsQuery();
             String allRowsQuery = Objects.requireNonNull(getAllRowsQuery(), "Query not found for getAllRowsQuery() for class, " + this.getClass().getName());
             if (field != null) {
