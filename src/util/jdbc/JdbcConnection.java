@@ -18,64 +18,28 @@ import java.util.logging.*;
  */
 public class JdbcConnection {
     private static final Logger LOGGER = Logger.getLogger(JdbcConnection.class.getName());
-    static Connection _myConnection;
 
-    /**
-     * Default Constructor
-     */
-    public JdbcConnection() {
-        super();
-    }
+    private static final Properties props = new Properties();
 
-    public static Connection getConnection() {
-        // get the default JDBC Connection
-        if (_myConnection == null) { // if null, need to initialize
-            // Load the database environment variables
-            Properties props = new Properties();
-            Path envFile = Paths.get(System.getProperty("user.dir"), ".env");
+    static {
+        Path envFile = Paths.get(System.getProperty("user.dir"), ".env");
 
-            try (var inputStream = Files.newInputStream(envFile)) {
-                props.load(inputStream);
-            } catch(Exception e) {
-                LOGGER.log(Level.WARNING, "Environment File is not found.", e);
-            }
-
-            try {
-                // Dereference the environment variables
-                String DB_HOST = props.getProperty("DB_HOST");
-                String DB_PORT = props.getProperty("DB_PORT");
-                String DB_NAME = props.getProperty("DB_NAME");
-                String DB_USERNAME = props.getProperty("DB_USERNAME");
-                String DB_PASSWORD = props.getProperty("DB_PASSWORD");
-
-                String sourceURL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + "/" + DB_NAME;
-
-                // Establish connection
-                _myConnection = DriverManager.getConnection(sourceURL, DB_USERNAME, DB_PASSWORD);
-                System.out.println("Connected Connection");
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "Could not connect to the database.", e);
-            }
+        try (var inputStream = Files.newInputStream(envFile)) {
+            props.load(inputStream);
+        } catch(Exception e) {
+            LOGGER.log(Level.SEVERE, "Environment File is not found.", e);
+            throw new RuntimeException(e);
         }
-
-        return _myConnection;
     }
 
-    public static void resetConnection() {
-        System.out.println("Connection reset triggered...");
-        if (_myConnection != null) {
-            try {
-                _myConnection.close();
-            } catch (SQLException se) {
-                System.out.println("Error while closing connection: " + se);
-            }
-        }
+    public static Connection createConnection() throws SQLException {
+        String sourceURL = "jdbc:mysql://"
+                + props.getProperty("DB_HOST")
+                + ":" + props.getProperty("DB_PORT")
+                + "/" + props.getProperty("DB_NAME");
 
-        _myConnection = null;
-        System.out.println("Connection closed successfully.");
-    }
-
-    public static void checkStatus() {
-        System.out.println(_myConnection);
+        return DriverManager.getConnection(sourceURL,
+                props.getProperty("DB_USERNAME"),
+                props.getProperty("DB_PASSWORD"));
     }
 }

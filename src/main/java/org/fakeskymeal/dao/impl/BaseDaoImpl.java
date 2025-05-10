@@ -7,9 +7,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.fakeskymeal.dto.BaseDto;
 import org.fakeskymeal.dao.exception.DaoException;
+import util.jdbc.ConnectionPool;
 import util.jdbc.JdbcConnection;
 
 
@@ -23,8 +26,12 @@ import util.jdbc.JdbcConnection;
  * 		04/20/2024 - jhui - Created
  */
 public abstract class BaseDaoImpl {
+    private static final Logger LOGGER = Logger.getLogger(BaseDaoImpl.class.getName());
+    protected final ConnectionPool pool;
 
-    public BaseDaoImpl() {}
+    public BaseDaoImpl(ConnectionPool pool) {
+        this.pool = pool;
+    }
 
     abstract void convertRStoDto(ResultSet results, BaseDto dto) throws DaoException;
     abstract String getAllRowsQuery();
@@ -131,8 +138,7 @@ public abstract class BaseDaoImpl {
         ResultSet result = null;
 
         try {
-            conn = JdbcConnection.getConnection();
-            //String allRowsQuery = getAllRowsQuery();
+            conn = pool.getConnection();
             String allRowsQuery = Objects.requireNonNull(getAllRowsQuery(), "Query not found for getAllRowsQuery() for class, " + this.getClass().getName());
             if (field != null) {
                 allRowsQuery = allRowsQuery + " WHERE " + field + " = ?";
@@ -155,7 +161,7 @@ public abstract class BaseDaoImpl {
                 try {
                     result.close();
                 } catch (SQLException se) {
-                    System.out.println("Error closing ResultSet: " + se.getMessage());
+                    LOGGER.log(Level.WARNING, "Error closing ResultSet: ", se.getMessage());
                 }
             }
 
@@ -163,20 +169,15 @@ public abstract class BaseDaoImpl {
                 try {
                     stmt.close();
                 } catch (SQLException se) {
-                    System.out.println("Error closing Statement: " + se.getMessage());
+                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
                 }
             }
 
             if (conn != null) {
-                JdbcConnection.resetConnection();
+                pool.releaseConnection(conn);
             }
-
-            System.out.print("Confirm connection close. Expect: null; got: ");
-            JdbcConnection.checkStatus();
         }
 
         return all;
     }
-
-
 }

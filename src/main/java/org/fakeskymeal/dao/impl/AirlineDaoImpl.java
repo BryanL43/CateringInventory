@@ -11,6 +11,8 @@ import org.fakeskymeal.dao.exception.DaoException;
 
 import org.fakeskymeal.dto.BaseDto;
 import org.fakeskymeal.dto.AirlineDto;
+
+import util.jdbc.ConnectionPool;
 import util.jdbc.JdbcConnection;
 
 public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
@@ -20,13 +22,13 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
     String _primaryKey = "id";
     Properties _airlineQueries = null;
 
-    public AirlineDaoImpl() {
-        super();
+    public AirlineDaoImpl(ConnectionPool pool) {
+        super(pool);
 
         _airlineQueries = new Properties();
         try {
             _airlineQueries.load(
-                this.getClass().getClassLoader().getResourceAsStream("main/resources/sql.properties")
+                this.getClass().getClassLoader().getResourceAsStream("sql.properties")
             );
         } catch (IOException io) {
             LOGGER.log(Level.WARNING, "Exception during sql.properties load:", io);
@@ -54,7 +56,7 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
         ResultSet generatedKeys = null;
 
         try {
-            conn = JdbcConnection.getConnection();
+            conn = pool.getConnection();
             stmt = conn.prepareStatement(getInsertQuery(), Statement.RETURN_GENERATED_KEYS);
 
             stmt.setString(1, t.getAirlineName());
@@ -93,11 +95,8 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
             }
 
             if (conn != null) {
-                JdbcConnection.resetConnection();
+                pool.releaseConnection(conn);
             }
-
-            System.out.print("Confirm connection close. Expect: null; got: ");
-            JdbcConnection.checkStatus();
         }
     }
 
@@ -116,7 +115,7 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
         PreparedStatement stmt = null;
 
         try {
-            conn = JdbcConnection.getConnection();
+            conn = pool.getConnection();
             stmt = conn.prepareStatement(getUpdateQuery());
 
             stmt.setString(1, params[0]); // new name
@@ -143,11 +142,8 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
             }
 
             if (conn != null) {
-                JdbcConnection.resetConnection();
+                pool.releaseConnection(conn);
             }
-
-            System.out.print("Confirm connection close. Expect: null; got: ");
-            JdbcConnection.checkStatus();
         }
     }
 
@@ -164,7 +160,7 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
         PreparedStatement stmt = null;
 
         try {
-            conn = JdbcConnection.getConnection();
+            conn = pool.getConnection();
             stmt = conn.prepareStatement(getDeleteQuery());
 
             stmt.setInt(1, t.getAirlineId());
@@ -185,11 +181,8 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
             }
 
             if (conn != null) {
-                JdbcConnection.resetConnection();
+                pool.releaseConnection(conn);
             }
-
-            System.out.print("Confirm connection close. Expect: null; got: ");
-            JdbcConnection.checkStatus();
         }
     }
 

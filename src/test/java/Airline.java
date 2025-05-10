@@ -1,5 +1,6 @@
 import java.util.List;
 
+import util.jdbc.ConnectionPool;
 import org.fakeskymeal.dao.AirlineDao;
 import org.fakeskymeal.dao.exception.DaoException;
 import org.fakeskymeal.dao.impl.AirlineDaoImpl;
@@ -9,11 +10,18 @@ import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class Airline {
-    private AirlineDao airlineDao;
+    private static AirlineDao airlineDao;
+    private static ConnectionPool pool;
 
-    @BeforeEach
-    void setUp() {
-        airlineDao = new AirlineDaoImpl();
+    @BeforeAll
+    static void setUp() {
+        pool = new ConnectionPool(1);
+        airlineDao = new AirlineDaoImpl(pool);
+    }
+
+    @AfterAll
+    static void tearDown() {
+        pool.shutdown();
     }
 
     @Test
@@ -76,8 +84,8 @@ public class Airline {
         // Read the test entry [Read]
         AirlineDto retrievedAirline = airlineDao.get(testAirline.getAirlineId());
 
-        System.out.println("Before update:");
-        System.out.println("\nReturned Department(" + retrievedAirline.getAirlineId() + "):" + retrievedAirline.toJson());
+        System.out.println("\nBefore update:");
+        System.out.println("Returned Department(" + retrievedAirline.getAirlineId() + "):" + retrievedAirline.toJson());
 
         // Update the test entry [Update]
         String[] updatedParams = {"Test Updated Airline", "Updated@example.com"};
@@ -87,8 +95,8 @@ public class Airline {
         assertEquals("Test Updated Airline", retrievedAirline.getAirlineName());
         assertEquals("Updated@example.com", retrievedAirline.getContactInfo());
 
-        System.out.println("After update:");
-        System.out.println("\nReturned Department(" + retrievedAirline.getAirlineId() + "):" + retrievedAirline.toJson());
+        System.out.println("\nAfter update:");
+        System.out.println("Returned Department(" + retrievedAirline.getAirlineId() + "):" + retrievedAirline.toJson());
 
         // Delete the test entry [Delete]
         airlineDao.delete(retrievedAirline);
@@ -106,8 +114,9 @@ public class Airline {
         assertNotNull(airlineDtos, "The airline list should not be null");
         assertFalse(airlineDtos.isEmpty(), "Expected at least one airline record");
 
+        System.out.println("Dumping airline records:");
         for (AirlineDto airlineDto : airlineDtos) {
-            System.out.println("\nReturned Department(" + airlineDto.getAirlineId() + "):" + airlineDto.toJson());
+            System.out.println("Returned Department(" + airlineDto.getAirlineId() + "):" + airlineDto.toJson());
         }
     }
 }
