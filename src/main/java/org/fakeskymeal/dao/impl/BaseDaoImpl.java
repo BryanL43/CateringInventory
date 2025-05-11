@@ -13,8 +13,6 @@ import java.util.logging.Logger;
 import org.fakeskymeal.dto.BaseDto;
 import org.fakeskymeal.dao.exception.DaoException;
 import util.jdbc.ConnectionPool;
-import util.jdbc.JdbcConnection;
-
 
 /**
  * BaseDaoImpl

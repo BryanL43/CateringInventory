@@ -2,44 +2,47 @@ package org.fakeskymeal.dao.impl;
 
 import java.io.IOException;
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.fakeskymeal.dao.AirlineDao;
+import org.fakeskymeal.dao.FlightDao;
 import org.fakeskymeal.dao.exception.DaoException;
 
 import org.fakeskymeal.dto.BaseDto;
-import org.fakeskymeal.dto.AirlineDto;
+import org.fakeskymeal.dto.FlightDto;
 
 import util.jdbc.ConnectionPool;
 
-public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
-    private static final Logger LOGGER = Logger.getLogger(AirlineDaoImpl.class.getName());
+public class FlightDaoImpl extends BaseDaoImpl implements FlightDao {
+    private static final Logger LOGGER = Logger.getLogger(FlightDaoImpl.class.getName());
 
-    String _tableName = "airline_companies";
+    String _tableName = "flights";
     String _primaryKey = "id";
-    Properties _airlineQueries = null;
+    Properties _flightQueries = null;
 
-    public AirlineDaoImpl(ConnectionPool pool) {
+    public FlightDaoImpl(ConnectionPool pool) {
         super(pool);
 
-        _airlineQueries = new Properties();
+        _flightQueries = new Properties();
         try {
-            _airlineQueries.load(
-                this.getClass().getClassLoader().getResourceAsStream("sql.properties")
+            _flightQueries.load(
+                    this.getClass().getClassLoader().getResourceAsStream("sql.properties")
             );
         } catch (IOException io) {
             LOGGER.log(Level.WARNING, "Exception during sql.properties load:", io);
         }
     }
 
-    public AirlineDto get(Integer id) throws DaoException {
-        return (AirlineDto) super.get(id);
+    public FlightDto get(Integer id) throws DaoException {
+        return (FlightDto) super.get(id);
     }
 
-    public AirlineDto getRow(String field, Object value) throws DaoException {
-        return (AirlineDto) super.getRow(field, value);
+    public FlightDto getRow(String field, Object value) throws DaoException {
+        return (FlightDto) super.getRow(field, value);
     }
 
     /**
@@ -47,9 +50,9 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      *
      * Convert the DTO into a SQL row and INSERT into the table
      *
-     * @param AirlineDto t - DTO that contains the values for the new row
+     * @param FlightDto t - DTO that contains the values for the new row
      */
-    public void save(AirlineDto t) throws DaoException {
+    public void save(FlightDto t) throws DaoException {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet generatedKeys = null;
@@ -58,8 +61,10 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
             conn = pool.getConnection();
             stmt = conn.prepareStatement(getInsertQuery(), Statement.RETURN_GENERATED_KEYS);
 
-            stmt.setString(1, t.getAirlineName());
-            stmt.setString(2, t.getContactInfo());
+            stmt.setInt(1, t.getAirlineCompanyId());
+            stmt.setString(2, t.getFlightNumber());
+            stmt.setObject(3, t.getDepartureTime());
+            stmt.setObject(4, t.getArrivalTime());
 
             int rows = stmt.executeUpdate();
             if (rows == 0) {
@@ -70,7 +75,7 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
             generatedKeys = stmt.getGeneratedKeys();
             if (generatedKeys.next()) {
                 int generatedId = generatedKeys.getInt(1);
-                t.setAirlineId(generatedId);
+                t.setFlightId(generatedId);
             } else {
                 throw new DaoException("Insert succeeded, but no ID returned.");
             }
@@ -105,11 +110,11 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      * Update the corresponding row in the database for the DTO with the
      * values in params
      *
-     * @param AirlineDto t - pull the primary key out of t
+     * @param FlightDto t - pull the primary key out of t
      * @param String[] params - values to update the row
      *
      */
-    public void update(AirlineDto t, String[] params) throws DaoException {
+    public void update(FlightDto t, String[] params) throws DaoException {
         Connection conn = null;
         PreparedStatement stmt = null;
 
@@ -117,18 +122,22 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
             conn = pool.getConnection();
             stmt = conn.prepareStatement(getUpdateQuery());
 
-            stmt.setString(1, params[0]); // new name
-            stmt.setString(2, params[1]); // new contact_info
-            stmt.setInt(3, t.getAirlineId()); // WHERE id = ?
+            stmt.setInt(1, Integer.parseInt(params[0])); // new airline_company_id
+            stmt.setString(2, params[1]); // new flight_number
+            stmt.setObject(3, LocalDateTime.parse(params[2])); // new departure_time
+            stmt.setObject(4, LocalDateTime.parse(params[3])); // new arrival_time
+            stmt.setInt(5, t.getFlightId()); // WHERE id = ?
 
             int rowsUpdated = stmt.executeUpdate();
             if (rowsUpdated == 0) {
-                throw new DaoException("Update failed: No record found with ID = " + t.getAirlineId());
+                throw new DaoException("Update failed: No record found with ID = " + t.getFlightId());
             }
 
             // Update DTO with new values
-            t.setAirlineName(params[0]);
-            t.setContactInfo(params[1]);
+            t.setAirlineCompanyId(Integer.parseInt(params[0]));
+            t.setFlightNumber(params[1]);
+            t.setDepartureTime(LocalDateTime.parse(params[2]));
+            t.setArrivalTime(LocalDateTime.parse(params[3]));
         } catch (SQLException se) {
             throw new DaoException(se.getMessage());
         } finally {
@@ -151,10 +160,10 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      *
      * Delete the corresponding row in the database for the DTO
      *
-     * @param AirlineDto t - pull the primary key out of t
+     * @param FlightDto t - pull the primary key out of t
      *
      */
-    public void delete(AirlineDto t) throws DaoException {
+    public void delete(FlightDto t) throws DaoException {
         Connection conn = null;
         PreparedStatement stmt = null;
 
@@ -162,11 +171,11 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
             conn = pool.getConnection();
             stmt = conn.prepareStatement(getDeleteQuery());
 
-            stmt.setInt(1, t.getAirlineId());
+            stmt.setInt(1, t.getFlightId());
 
             int rowsDeleted = stmt.executeUpdate();
             if (rowsDeleted == 0) {
-                throw new DaoException("Delete failed: no record found with ID = " + t.getAirlineId());
+                throw new DaoException("Delete failed: no record found with ID = " + t.getFlightId());
             }
         } catch (SQLException se) {
             throw new DaoException(se.getMessage());
@@ -186,6 +195,67 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
     }
 
     /**
+     * getFlightsByCompanyName
+     *
+     * Get all corresponding row in the database for the DTO with the filter
+     * of airline company name
+     *
+     * @param String companyName - The flights associated to said company name.
+     *
+     */
+    public List<FlightDto> getFlightsByAirlineName(String companyName) throws DaoException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        List<FlightDto> flights = new ArrayList<>();
+
+        try {
+            conn = pool.getConnection();
+            stmt = conn.prepareStatement(getFlightsByAirlineNameQuery());
+
+            stmt.setString(1, companyName);
+
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                FlightDto flight = new FlightDto();
+                flight.setFlightId(rs.getInt("id"));
+                flight.setAirlineCompanyId(rs.getInt("airline_company_id"));
+                flight.setFlightNumber(rs.getString("flight_number"));
+                flight.setDepartureTime(rs.getObject("departure_time", LocalDateTime.class));
+                flight.setArrivalTime(rs.getObject("arrival_time", LocalDateTime.class));
+
+                flights.add(flight);
+            }
+
+        } catch (SQLException se) {
+            throw new DaoException(se.getMessage());
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing ResultSet: ", se.getMessage());
+                }
+            }
+
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
+                }
+            }
+
+            if (conn != null) {
+                pool.releaseConnection(conn);
+            }
+        }
+
+        return flights;
+    }
+
+    /**
      * convertRStoDto
      *
      * Utility method that copies the values in the ResultSet into the DTO.
@@ -196,11 +266,13 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      * @param BaseDto dto - the destination Data Transfer Object
      */
     void convertRStoDto(ResultSet result, BaseDto dto) throws DaoException {
-        AirlineDto airline = (AirlineDto) dto;
+        FlightDto flight = (FlightDto) dto;
         try {
-            airline.setAirlineId(result.getInt(1));
-            airline.setAirlineName(result.getString(2));
-            airline.setContactInfo(result.getString(3));
+            flight.setFlightId(result.getInt(1));
+            flight.setAirlineCompanyId(result.getInt(2));
+            flight.setFlightNumber(result.getString(3));
+            flight.setDepartureTime(result.getObject(4, LocalDateTime.class));
+            flight.setArrivalTime(result.getObject(5, LocalDateTime.class));
         } catch (SQLException se) {
             throw new DaoException(se.getMessage());
         }
@@ -214,7 +286,7 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      * @return String - equivalent to "select * from tableName"
      */
     String getAllRowsQuery() {
-        return _airlineQueries.getProperty("AIRLINE_GET_ALL");
+        return _flightQueries.getProperty("FLIGHT_GET_ALL");
     }
 
     /**
@@ -225,7 +297,7 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      * @return String - INSERT query
      */
     String getInsertQuery() {
-        return _airlineQueries.getProperty("AIRLINE_INSERT");
+        return _flightQueries.getProperty("FLIGHT_INSERT");
     }
 
     /**
@@ -236,7 +308,7 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      * @return String - DELETE query
      */
     String getDeleteQuery() {
-        return _airlineQueries.getProperty("AIRLINE_DELETE_ID");
+        return _flightQueries.getProperty("FLIGHT_DELETE_ID");
     }
 
     /**
@@ -247,7 +319,7 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      * @return String - UPDATE query
      */
     String getUpdateQuery() {
-        return _airlineQueries.getProperty("AIRLINE_UPDATE_ID");
+        return _flightQueries.getProperty("FLIGHT_UPDATE_ID");
     }
 
     /**
@@ -280,6 +352,17 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      * @return appropriate DTO
      */
     BaseDto getDto() {
-        return new AirlineDto();
+        return new FlightDto();
+    }
+
+    /**
+     * getFlightsByCompanyNameQuery
+     *
+     * Returns the Flight selection by Airline Name Query
+     *
+     * @return String - SELECT query
+     */
+    String getFlightsByAirlineNameQuery() {
+        return _flightQueries.getProperty("FLIGHT_GET_BY_AIRLINE_NAME");
     }
 }

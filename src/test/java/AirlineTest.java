@@ -7,11 +7,14 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.fakeskymeal.dao.impl.FlightDaoImpl;
 import util.jdbc.ConnectionPool;
 import org.fakeskymeal.dao.AirlineDao;
 import org.fakeskymeal.dao.exception.DaoException;
 import org.fakeskymeal.dao.impl.AirlineDaoImpl;
 import org.fakeskymeal.dto.AirlineDto;
+import org.fakeskymeal.dao.FlightDao;
+import org.fakeskymeal.dto.FlightDto;
 
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,12 +37,12 @@ public class AirlineTest {
 
     @Test
     void testGetById() throws DaoException {
-        int existingId = 16;
-        AirlineDto airlineDto = airlineDao.get(existingId);
+        int ADMIN_TEST_ID = 1;
+        AirlineDto airlineDto = airlineDao.get(ADMIN_TEST_ID);
 
         assertNotNull(airlineDto);
-        assertEquals(existingId, airlineDto.getAirlineId());
-        System.out.println("Get by ID: " + airlineDto.toJson());
+        assertEquals(ADMIN_TEST_ID, airlineDto.getAirlineId());
+        System.out.println("Get by ID " + ADMIN_TEST_ID + ": " + airlineDto.toJson());
     }
 
     @Test
@@ -59,9 +62,11 @@ public class AirlineTest {
 
     @Test
     void testGetOneByParam() throws DaoException {
-        AirlineDto airlineDto = airlineDao.getRow("contact_info", "Admin@example.com");
+        String field = "contact_info";
+        String value = "Admin@example.com";
+        AirlineDto airlineDto = airlineDao.getRow(field, value);
         assertNotNull(airlineDto);
-        System.out.println("Get by field: " + airlineDto.toJson());
+        System.out.println("Get by field " + field + ": " + airlineDto.toJson());
     }
 
     @Test
@@ -93,18 +98,18 @@ public class AirlineTest {
         AirlineDto retrievedAirline = airlineDao.get(testAirline.getAirlineId());
 
         System.out.println("\nBefore update:");
-        System.out.println("Returned Department(" + retrievedAirline.getAirlineId() + "):" + retrievedAirline.toJson());
+        System.out.println("Returned Airline(" + retrievedAirline.getAirlineId() + "):" + retrievedAirline.toJson());
 
         // Update the test entry [Update]
         String[] updatedParams = {"Test Updated Airline", "Updated@example.com"};
         airlineDao.update(retrievedAirline, updatedParams);
 
         assertNotNull(retrievedAirline);
-        assertEquals("Test Updated Airline", retrievedAirline.getAirlineName());
-        assertEquals("Updated@example.com", retrievedAirline.getContactInfo());
+        assertEquals(updatedParams[0], retrievedAirline.getAirlineName());
+        assertEquals(updatedParams[1], retrievedAirline.getContactInfo());
 
         System.out.println("\nAfter update:");
-        System.out.println("Returned Department(" + retrievedAirline.getAirlineId() + "):" + retrievedAirline.toJson());
+        System.out.println("Returned Airline(" + retrievedAirline.getAirlineId() + "):" + retrievedAirline.toJson());
 
         // Delete the test entry [Delete]
         airlineDao.delete(retrievedAirline);
@@ -164,6 +169,21 @@ public class AirlineTest {
     }
 
     @Test
+    void testAcquireAllFlightsFromAirlineByName() throws DaoException {
+        String companyName = "Delta";
+        FlightDao flightDao = new FlightDaoImpl(pool);
+
+        List<FlightDto> flightDtos = flightDao.getFlightsByAirlineName(companyName);
+
+        assertNotNull(flightDtos, "The flight list should not be null");
+        assertFalse(flightDtos.isEmpty(), "There should be at least one flight for airline " + companyName);
+
+        for (FlightDto flightDto : flightDtos) {
+            System.out.println("Returned Flight(" + flightDto.getFlightId() + "):" + flightDto.toJson());
+        }
+    }
+
+    @Test
     void testDumpTable() throws DaoException {
         List<AirlineDto> airlineDtos = airlineDao.getAll();
         assertNotNull(airlineDtos, "The airline list should not be null");
@@ -171,7 +191,7 @@ public class AirlineTest {
 
         System.out.println("Dumping airline records:");
         for (AirlineDto airlineDto : airlineDtos) {
-            System.out.println("Returned Department(" + airlineDto.getAirlineId() + "):" + airlineDto.toJson());
+            System.out.println("Returned Airline(" + airlineDto.getAirlineId() + "):" + airlineDto.toJson());
         }
     }
 }
