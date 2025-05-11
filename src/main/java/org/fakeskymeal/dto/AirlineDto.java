@@ -9,6 +9,11 @@ public class AirlineDto extends BaseDto {
         super();
     }
 
+    @Override
+    public int getId() {
+        return airlineId;
+    }
+
     public int getAirlineId() {
         return airlineId;
     }

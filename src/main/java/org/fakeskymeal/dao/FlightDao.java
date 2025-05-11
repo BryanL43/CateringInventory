@@ -5,25 +5,12 @@ import org.fakeskymeal.dto.FlightDto;
 
 import java.util.List;
 
-public interface FlightDao {
+public interface FlightDao extends BaseDao<FlightDto> {
     /**
      * FlightDao
      *
-     * Interface for Data Access Object, FlightDao
+     * Interface for Data Access Object, FlightDao.
+     * Additional methods not in BaseDao can be declared here.
      */
-    FlightDto get(Integer id) throws DaoException;
-
-    FlightDto getRow(String field, Object value) throws DaoException;
-
-    List<FlightDto> getRows(String field, Object value) throws DaoException;
-
-    List<FlightDto> getAll() throws DaoException;
-
-    void save(FlightDto t) throws DaoException;
-
-    void update(FlightDto t, String[] params) throws DaoException;
-
-    void delete(FlightDto t) throws DaoException;
-
     List<FlightDto> getFlightsByAirlineName(String companyName) throws DaoException;
 }

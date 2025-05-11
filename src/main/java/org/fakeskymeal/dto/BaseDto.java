@@ -12,11 +12,13 @@ import java.lang.reflect.Field;
  * 		04/20/2024 - jhui - Created
  */
 
-public class BaseDto {
+public abstract class BaseDto {
 
     public BaseDto() {
         super();
     }
+
+    public abstract int getId();
 
     /**
      * toString

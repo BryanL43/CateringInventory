@@ -13,6 +13,11 @@ public class FlightDto extends BaseDto {
         super();
     }
 
+    @Override
+    public int getId() {
+        return flightId;
+    }
+
     public int getFlightId() {
         return flightId;
     }

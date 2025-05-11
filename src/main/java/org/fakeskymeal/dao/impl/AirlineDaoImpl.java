@@ -9,24 +9,23 @@ import java.util.logging.Logger;
 import org.fakeskymeal.dao.AirlineDao;
 import org.fakeskymeal.dao.exception.DaoException;
 
-import org.fakeskymeal.dto.BaseDto;
 import org.fakeskymeal.dto.AirlineDto;
 
 import util.jdbc.ConnectionPool;
 
-public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
+public class AirlineDaoImpl extends BaseDaoImpl<AirlineDto> implements AirlineDao {
     private static final Logger LOGGER = Logger.getLogger(AirlineDaoImpl.class.getName());
 
     String _tableName = "airline_companies";
     String _primaryKey = "id";
-    Properties _airlineQueries = null;
+    Properties _queries;
 
     public AirlineDaoImpl(ConnectionPool pool) {
-        super(pool);
+        super(pool, AirlineDto.class);
 
-        _airlineQueries = new Properties();
+        _queries = new Properties();
         try {
-            _airlineQueries.load(
+            _queries.load(
                 this.getClass().getClassLoader().getResourceAsStream("sql.properties")
             );
         } catch (IOException io) {
@@ -35,154 +34,91 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
     }
 
     public AirlineDto get(Integer id) throws DaoException {
-        return (AirlineDto) super.get(id);
+        return super.get(id);
     }
 
     public AirlineDto getRow(String field, Object value) throws DaoException {
-        return (AirlineDto) super.getRow(field, value);
+        return super.getRow(field, value);
     }
 
     /**
-     * save
+     * prepareInsert
      *
-     * Convert the DTO into a SQL row and INSERT into the table
+     * This method is called by the generic save() logic in BaseDaoImpl to bind
+     * specific column values (e.g., name) into the SQL INSERT query.
      *
-     * @param AirlineDto t - DTO that contains the values for the new row
+     * @param stmt the prepared statement to populate
+     * @param dto the Data Transfer Object containing the values to insert
+     * @throws SQLException if a database access error occurs
      */
-    public void save(AirlineDto t) throws DaoException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet generatedKeys = null;
-
-        try {
-            conn = pool.getConnection();
-            stmt = conn.prepareStatement(getInsertQuery(), Statement.RETURN_GENERATED_KEYS);
-
-            stmt.setString(1, t.getAirlineName());
-            stmt.setString(2, t.getContactInfo());
-
-            int rows = stmt.executeUpdate();
-            if (rows == 0) {
-                throw new DaoException("Insert failed, no rows affected.");
-            }
-
-            // Acquire the generated id for the newly inserted item
-            generatedKeys = stmt.getGeneratedKeys();
-            if (generatedKeys.next()) {
-                int generatedId = generatedKeys.getInt(1);
-                t.setAirlineId(generatedId);
-            } else {
-                throw new DaoException("Insert succeeded, but no ID returned.");
-            }
-        } catch (SQLException se) {
-            throw new DaoException(se.getMessage());
-        } finally {
-            if (generatedKeys != null) {
-                try {
-                    generatedKeys.close();
-                } catch (SQLException se) {
-                    LOGGER.log(Level.WARNING, "Error closing generated key: ", se.getMessage());
-                }
-            }
-
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException se) {
-                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
-                }
-            }
-
-            if (conn != null) {
-                pool.releaseConnection(conn);
-            }
-        }
+    @Override
+    protected void prepareInsert(PreparedStatement stmt, AirlineDto dto) throws SQLException {
+        stmt.setString(1, dto.getAirlineName());
+        stmt.setString(2, dto.getContactInfo());
     }
 
     /**
-     * update
+     * prepareUpdate
      *
-     * Update the corresponding row in the database for the DTO with the
-     * values in params
+     * This method binds the new field values from the {@code params} array and the primary key
+     * from the {@code dto} to the prepared statement.
      *
-     * @param AirlineDto t - pull the primary key out of t
-     * @param String[] params - values to update the row
-     *
+     * @param stmt the prepared statement to populate
+     * @param dto the Data Transfer Object containing the primary key (ID)
+     * @param params an array of new values to apply (e.g., name)
+     * @throws SQLException if a database access error occurs
      */
-    public void update(AirlineDto t, String[] params) throws DaoException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-
-        try {
-            conn = pool.getConnection();
-            stmt = conn.prepareStatement(getUpdateQuery());
-
-            stmt.setString(1, params[0]); // new name
-            stmt.setString(2, params[1]); // new contact_info
-            stmt.setInt(3, t.getAirlineId()); // WHERE id = ?
-
-            int rowsUpdated = stmt.executeUpdate();
-            if (rowsUpdated == 0) {
-                throw new DaoException("Update failed: No record found with ID = " + t.getAirlineId());
-            }
-
-            // Update DTO with new values
-            t.setAirlineName(params[0]);
-            t.setContactInfo(params[1]);
-        } catch (SQLException se) {
-            throw new DaoException(se.getMessage());
-        } finally {
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException se) {
-                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
-                }
-            }
-
-            if (conn != null) {
-                pool.releaseConnection(conn);
-            }
-        }
+    @Override
+    protected void prepareUpdate(PreparedStatement stmt, AirlineDto dto, String[] params) throws SQLException {
+        stmt.setString(1, params[0]); // new name
+        stmt.setString(2, params[1]); // new contact_info
+        stmt.setInt(3, dto.getAirlineId()); // WHERE id = ?
     }
 
     /**
-     * delete
+     * applyParamsToDto
      *
-     * Delete the corresponding row in the database for the DTO
+     * Applies the given update parameters to the provided Data Transfer Object instance.
+     * This method is called after a successful UPDATE operation to synchronize the
+     * in-memory DTO with the new values that were written to the database.
      *
-     * @param AirlineDto t - pull the primary key out of t
-     *
+     * @param dto the Data Transfer Object to update
+     * @param params the array of new values (e.g., name)
      */
-    public void delete(AirlineDto t) throws DaoException {
-        Connection conn = null;
-        PreparedStatement stmt = null;
+    @Override
+    protected void applyParamsToDto(AirlineDto dto, String[] params) {
+        dto.setAirlineName(params[0]);
+        dto.setContactInfo(params[1]);
+    }
 
-        try {
-            conn = pool.getConnection();
-            stmt = conn.prepareStatement(getDeleteQuery());
+    /**
+     * prepareDelete
+     *
+     * Populates the {@link PreparedStatement} with the primary key needed to delete
+     * the specified Data Transfer Object from the database.
+     *
+     * @param stmt the prepared statement to populate
+     * @param dto the Data Transfer Object containing the ID to delete
+     * @throws SQLException if a database access error occurs
+     */
+    @Override
+    protected void prepareDelete(PreparedStatement stmt, AirlineDto dto) throws SQLException {
+        stmt.setInt(1, dto.getAirlineId());
+    }
 
-            stmt.setInt(1, t.getAirlineId());
-
-            int rowsDeleted = stmt.executeUpdate();
-            if (rowsDeleted == 0) {
-                throw new DaoException("Delete failed: no record found with ID = " + t.getAirlineId());
-            }
-        } catch (SQLException se) {
-            throw new DaoException(se.getMessage());
-        } finally {
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException se) {
-                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
-                }
-            }
-
-            if (conn != null) {
-                pool.releaseConnection(conn);
-            }
-        }
+    /**
+     * setGeneratedId
+     *
+     * Extracts the generated primary key from the given {@link ResultSet}
+     * and assigns it to the Data Transfer Object after a successful INSERT.
+     *
+     * @param keys the ResultSet containing generated keys
+     * @param dto the Data Transfer Object to update with the generated ID
+     * @throws SQLException if a database access error occurs or no key is found
+     */
+    @Override
+    protected void setGeneratedId(ResultSet keys, AirlineDto dto) throws SQLException {
+        dto.setAirlineId(keys.getInt(1));
     }
 
     /**
@@ -195,8 +131,8 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      * @param ResultSet result - the source values from a query to the DB
      * @param BaseDto dto - the destination Data Transfer Object
      */
-    void convertRStoDto(ResultSet result, BaseDto dto) throws DaoException {
-        AirlineDto airline = (AirlineDto) dto;
+    @Override
+    protected void convertRStoDto(ResultSet result, AirlineDto airline) throws DaoException {
         try {
             airline.setAirlineId(result.getInt(1));
             airline.setAirlineName(result.getString(2));
@@ -213,8 +149,9 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      *
      * @return String - equivalent to "select * from tableName"
      */
-    String getAllRowsQuery() {
-        return _airlineQueries.getProperty("AIRLINE_GET_ALL");
+    @Override
+    protected String getAllRowsQuery() {
+        return _queries.getProperty("AIRLINE_GET_ALL");
     }
 
     /**
@@ -224,8 +161,9 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      *
      * @return String - INSERT query
      */
-    String getInsertQuery() {
-        return _airlineQueries.getProperty("AIRLINE_INSERT");
+    @Override
+    protected String getInsertQuery() {
+        return _queries.getProperty("AIRLINE_INSERT");
     }
 
     /**
@@ -235,8 +173,9 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      *
      * @return String - DELETE query
      */
-    String getDeleteQuery() {
-        return _airlineQueries.getProperty("AIRLINE_DELETE_ID");
+    @Override
+    protected String getDeleteQuery() {
+        return _queries.getProperty("AIRLINE_DELETE_ID");
     }
 
     /**
@@ -246,8 +185,9 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      *
      * @return String - UPDATE query
      */
-    String getUpdateQuery() {
-        return _airlineQueries.getProperty("AIRLINE_UPDATE_ID");
+    @Override
+    protected String getUpdateQuery() {
+        return _queries.getProperty("AIRLINE_UPDATE_ID");
     }
 
     /**
@@ -257,7 +197,8 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      *
      * @return String - Table Name
      */
-    String getTableName() {
+    @Override
+    protected String getTableName() {
         return _tableName;
     }
 
@@ -268,18 +209,8 @@ public class AirlineDaoImpl extends BaseDaoImpl implements AirlineDao {
      *
      * @return String - Primary Key
      */
-    String getPrimaryKey() {
+    @Override
+    protected String getPrimaryKey() {
         return _primaryKey;
-    }
-
-    /**
-     * getDto
-     *
-     * Returns the appropriate Data Transfer Object for this Data Access Object.
-     *
-     * @return appropriate DTO
-     */
-    BaseDto getDto() {
-        return new AirlineDto();
     }
 }
