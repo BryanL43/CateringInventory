@@ -1,4 +1,7 @@
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.List;
+import java.util.concurrent.*;
 
 import util.jdbc.ConnectionPool;
 import org.fakeskymeal.dao.AirlineDao;
@@ -106,6 +109,44 @@ public class Airline {
         assertThrows(DaoException.class, () -> {
             airlineDao.get(retrievedAirline.getAirlineId());
         });
+    }
+
+    @Test
+    void testConcurrentUpdateContention() throws Exception {
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        Runnable updateTask = () -> {
+            try (Connection conn = pool.getConnection()) {
+                conn.setAutoCommit(false); // Start transaction
+
+                PreparedStatement stmt = conn.prepareStatement(
+                        "UPDATE airline_companies SET name = ?, contact_info = ? WHERE id = ?"
+                );
+
+                // All threads update the same row (ID = 1) to cause contention
+                stmt.setString(1, "Updated Airline " + Thread.currentThread().getName());
+                stmt.setString(2, "contact@" + Thread.currentThread().getName() + ".com");
+                stmt.setInt(3, 16); // same target row ID
+
+                System.out.println(Thread.currentThread().getName() + " executing update...");
+                stmt.executeUpdate();
+
+                // Hold the transaction open to simulate a lock
+                Thread.sleep(3000);
+
+                conn.commit();
+                System.out.println(Thread.currentThread().getName() + " committed.");
+            } catch (Exception e) {
+                System.err.println(Thread.currentThread().getName() + " failed: " + e.getMessage());
+            }
+        };
+
+        // Submit two concurrent update tasks
+        executor.submit(updateTask);
+        executor.submit(updateTask);
+
+        executor.shutdown();
+        executor.awaitTermination(10, TimeUnit.SECONDS);
     }
 
     @Test

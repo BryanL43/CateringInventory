@@ -6,11 +6,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.junit.jupiter.api.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ConnectionPoolTest {
+    private static final Logger LOGGER = Logger.getLogger(ConnectionPoolTest.class.getName());
     private ConnectionPool pool;
 
     @BeforeEach
@@ -100,26 +104,31 @@ public class ConnectionPoolTest {
             connections[i] = pool.getConnection();
         }
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        try {
-            // Attempt another acquisition in a separate thread
-            Future<Connection> future = executor.submit(() -> pool.getConnection());
-
-            // Check if the pool blocks when its empty
+        // Launch a new thread and verify that connection acquisition is blocked on empty pool
+        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+        try (executor) {
             try {
-                future.get(500, TimeUnit.MILLISECONDS);
-                fail("Expected getConnection to block or fail, but it returned a connection");
-            } catch (TimeoutException e) {
-                // Expected if the thread is blocked
-                System.out.println("getConnection is blocked as expected due to empty pool.");
+                Future<Connection> future = executor.submit(() -> pool.getConnection());
+
+                try {
+                    future.get(500, TimeUnit.MILLISECONDS);
+                    fail("Expected ConnectionPoolTest.getConnection to block or fail, but it returned a connection");
+                } catch (TimeoutException e) {
+                    System.out.println("ConnectionPoolTest.getConnection is blocked as expected due to empty pool.");
+                    future.cancel(true);
+                } catch (InterruptedException | ExecutionException e) {
+                    LOGGER.log(Level.SEVERE, e.getMessage(), e);
+                }
+            } finally {
+                executor.shutdownNow();
             }
         } finally {
-            executor.shutdownNow(); // Ensure thread is stopped
-        }
+            assertTrue(executor.isShutdown());
 
-        // Release resources
-        for (Connection conn : connections) {
-            pool.releaseConnection(conn);
+            // Release resources
+            for (Connection conn : connections) {
+                pool.releaseConnection(conn);
+            }
         }
     }
 
@@ -131,12 +140,15 @@ public class ConnectionPoolTest {
             connections[i] = pool.getConnection();
         }
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
+        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
         Future<Connection> future = null;
 
-        try {
+        try (executor) {
             // Submit task that will block on getConnection
-            future = executor.submit(() -> pool.getConnection());
+            future = executor.submit(() -> {
+                System.out.println("Waiting for available connection...");
+                return pool.getConnection();
+            });
 
             // Wait a bit to ensure the task is likely blocking
             Thread.sleep(500);
@@ -144,13 +156,15 @@ public class ConnectionPoolTest {
             // Release a connection so the blocked thread can proceed
             pool.releaseConnection(connections[0]);
 
-            // The thread should now return the released connection
-            Connection acquired = future.get(500, TimeUnit.MILLISECONDS); // Should NOT time out now
-
+            // The thread should now get the released connection
+            Connection acquired = future.get(500, TimeUnit.MILLISECONDS);
             assertNotNull(acquired, "Blocked thread should have acquired a connection");
+            System.out.println("Acquired connection: " + acquired);
+
             pool.releaseConnection(acquired);
         } finally {
-            executor.shutdownNow();
+            assertTrue(executor.isShutdown());
+
             for (int i = 1; i < pool.getSize(); i++) {
                 pool.releaseConnection(connections[i]);
             }
@@ -194,7 +208,7 @@ public class ConnectionPoolTest {
     @Test
     // Ensure no leaks or deadlocks after multiple cycles
     void testMultipleAcquireReleaseCycles() throws SQLException {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < pool.getSize() * 2 + 1; i++) {
             Connection conn = pool.getConnection();
             assertNotNull(conn);
             pool.releaseConnection(conn);
