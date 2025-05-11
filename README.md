@@ -2,7 +2,7 @@
 
 ## Overview
 This project is a mock backend RDBMs java application to simulate an airline catering inventory system.
-It uses `Maven` framework and JDBC to interact with the `AWS RDS` database.
+It uses `Maven framework` and `JDBC` to interact with the `AWS RDS` database.
 
 ## Installation
 
@@ -42,6 +42,9 @@ version: 5.10.0
 
 ## Troubleshooting
 - Ensure the `.env` file is configured correctly.
+- Ensure `src/` directory is marked as `Sources Root`.
+- Ensure `src/main/resources/` is marked as `Resources Root`.
+- Ensure `src/test/` is marked as `Test Sources Root`.
 
 
 ## License
