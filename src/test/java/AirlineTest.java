@@ -1,7 +1,11 @@
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import util.jdbc.ConnectionPool;
 import org.fakeskymeal.dao.AirlineDao;
@@ -12,13 +16,14 @@ import org.fakeskymeal.dto.AirlineDto;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class Airline {
+public class AirlineTest {
+    private static final Logger LOGGER = Logger.getLogger(AirlineTest.class.getName());
     private static AirlineDao airlineDao;
     private static ConnectionPool pool;
 
     @BeforeAll
     static void setUp() {
-        pool = new ConnectionPool(1);
+        pool = new ConnectionPool(3);
         airlineDao = new AirlineDaoImpl(pool);
     }
 
@@ -54,7 +59,7 @@ public class Airline {
 
     @Test
     void testGetOneByParam() throws DaoException {
-        AirlineDto airlineDto = airlineDao.getRow("name", "Hawaiian");
+        AirlineDto airlineDto = airlineDao.getRow("contact_info", "Admin@example.com");
         assertNotNull(airlineDto);
         System.out.println("Get by field: " + airlineDto.toJson());
     }
@@ -106,47 +111,56 @@ public class Airline {
         System.out.println("Deleted airline with ID: " + retrievedAirline.getAirlineId());
 
         // Confirm deletion
-        assertThrows(DaoException.class, () -> {
-            airlineDao.get(retrievedAirline.getAirlineId());
-        });
+        assertThrows(DaoException.class, () -> airlineDao.get(retrievedAirline.getAirlineId()));
     }
 
     @Test
-    void testConcurrentUpdateContention() throws Exception {
+    void testConcurrentUpdateContention() {
+        Properties SQLQueries = new Properties();
+        try {
+            SQLQueries.load(
+                this.getClass().getClassLoader().getResourceAsStream("sql.properties")
+            );
+        } catch (IOException io) {
+            LOGGER.log(Level.WARNING, "Exception during sql.properties load:", io);
+        }
+
         ExecutorService executor = Executors.newFixedThreadPool(2);
+        try (executor) {
+            Runnable updateTask = () -> {
+                Connection conn = null;
+                try {
+                    conn = pool.getConnection();
+                    conn.setAutoCommit(false);
 
-        Runnable updateTask = () -> {
-            try (Connection conn = pool.getConnection()) {
-                conn.setAutoCommit(false); // Start transaction
+                    PreparedStatement stmt = conn.prepareStatement(SQLQueries.getProperty("AIRLINE_UPDATE_ID"));
+                    stmt.setString(1, "Admin Test Airline");
+                    stmt.setString(2, "Admin@example.com");
+                    stmt.setInt(3, 16);
 
-                PreparedStatement stmt = conn.prepareStatement(
-                        "UPDATE airline_companies SET name = ?, contact_info = ? WHERE id = ?"
-                );
+                    System.out.println(Thread.currentThread().getName() + " executing update...");
+                    int rowsAffected = stmt.executeUpdate();
+                    System.out.println(Thread.currentThread().getName() + " updated rows: " + rowsAffected);
 
-                // All threads update the same row (ID = 1) to cause contention
-                stmt.setString(1, "Updated Airline " + Thread.currentThread().getName());
-                stmt.setString(2, "contact@" + Thread.currentThread().getName() + ".com");
-                stmt.setInt(3, 16); // same target row ID
+                    Thread.sleep(300);
 
-                System.out.println(Thread.currentThread().getName() + " executing update...");
-                stmt.executeUpdate();
+                    conn.commit();
+                    System.out.println(Thread.currentThread().getName() + " committed.");
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE, Thread.currentThread().getName() + " failed: ", e.getMessage());
+                } finally {
+                    if (conn != null) {
+                        pool.releaseConnection(conn);
+                    }
+                }
+            };
 
-                // Hold the transaction open to simulate a lock
-                Thread.sleep(3000);
-
-                conn.commit();
-                System.out.println(Thread.currentThread().getName() + " committed.");
-            } catch (Exception e) {
-                System.err.println(Thread.currentThread().getName() + " failed: " + e.getMessage());
-            }
-        };
-
-        // Submit two concurrent update tasks
-        executor.submit(updateTask);
-        executor.submit(updateTask);
-
-        executor.shutdown();
-        executor.awaitTermination(10, TimeUnit.SECONDS);
+            // Submit two concurrent update tasks
+            executor.submit(updateTask);
+            executor.submit(updateTask);
+        } finally {
+            assertTrue(executor.isShutdown());
+        }
     }
 
     @Test

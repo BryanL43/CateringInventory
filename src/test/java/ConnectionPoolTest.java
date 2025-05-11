@@ -78,13 +78,11 @@ public class ConnectionPoolTest {
         }
 
         // Simulate that another thread is blocked by checking if `getConnection()` would block
-        Thread t = new Thread(() -> {
-            assertThrows(SQLException.class, () -> {
-                // Interrupt this thread while waiting
-                Thread.currentThread().interrupt();
-                pool.getConnection();
-            });
-        });
+        Thread t = new Thread(() -> assertThrows(SQLException.class, () -> {
+            // Interrupt this thread while waiting
+            Thread.currentThread().interrupt();
+            pool.getConnection();
+        }));
         t.start();
         try {
             t.join();
@@ -141,7 +139,7 @@ public class ConnectionPoolTest {
         }
 
         ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-        Future<Connection> future = null;
+        Future<Connection> future;
 
         try (executor) {
             // Submit task that will block on getConnection
@@ -181,9 +179,7 @@ public class ConnectionPoolTest {
 
         // Attempt another connection with a 1-second timeout
         long startTime = System.currentTimeMillis();
-        SQLException thrown = assertThrows(SQLException.class, () -> {
-            pool.getConnection(1000);
-        });
+        SQLException thrown = assertThrows(SQLException.class, () -> pool.getConnection(1000));
         long duration = System.currentTimeMillis() - startTime;
 
         // Verify timeout behavior
