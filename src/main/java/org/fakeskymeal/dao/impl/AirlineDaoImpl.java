@@ -129,7 +129,7 @@ public class AirlineDaoImpl extends BaseDaoImpl<AirlineDto> implements AirlineDa
      * BaseDaoImpl.
      *
      * @param ResultSet result - the source values from a query to the DB
-     * @param BaseDto dto - the destination Data Transfer Object
+     * @param AirlineDto dto - the destination Data Transfer Object
      */
     @Override
     protected void convertRStoDto(ResultSet result, AirlineDto airline) throws DaoException {

@@ -45,7 +45,7 @@ version: 5.10.0
 - Ensure `src/` directory is marked as `Sources Root`.
 - Ensure `src/main/resources/` is marked as `Resources Root`.
 - Ensure `src/test/` is marked as `Test Sources Root`.
-
+- If there are any potential compilation issues with `test/`, simply clear cache via deleting `target/` and rebuilding.
 
 ## License
 This project is licensed under the MIT License.

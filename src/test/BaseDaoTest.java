@@ -66,26 +66,40 @@ public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
 
     @Test
     void testCRUD() throws DaoException {
-        // Create
         T dto = createTestDto();
+        boolean inserted = false, deleted = false;
 
-        getDao().save(dto);
-        assertTrue(getId(dto) > 0, "ID should be set after insert");
+        try {
+            // Create
+            getDao().save(dto);
+            inserted = true;
+            assertTrue(getId(dto) > 0, "ID should be set after insert");
 
-        // Retrieve
-        T reloaded = getDao().get(getId(dto));
-        System.out.println("\nBefore update:\n" + proxyToJson(reloaded));
+            // Retrieve
+            T reloaded = getDao().get(getId(dto));
+            System.out.println("\nBefore update:\n" + proxyToJson(reloaded));
 
-        // Update
-        String[] params = getUpdatedParams();
-        getDao().update(reloaded, params);
-        verifyUpdated(reloaded, params);
+            // Update
+            String[] params = getUpdatedParams();
+            getDao().update(reloaded, params);
+            verifyUpdated(reloaded, params);
 
-        System.out.println("\nAfter update:\n" + proxyToJson(reloaded));
+            System.out.println("\nAfter update:\n" + proxyToJson(reloaded));
 
-        // Delete
-        getDao().delete(reloaded);
-        assertThrows(DaoException.class, () -> getDao().get(getId(reloaded)));
+            // Delete
+            getDao().delete(reloaded);
+            deleted = true;
+            assertThrows(DaoException.class, () -> getDao().get(getId(reloaded)));
+        } catch (Exception e) {
+            if (inserted && !deleted) {
+                try {
+                    getDao().delete(dto);
+                } catch (Exception ignored) {
+                    // Object may have already been deleted or not exist [ignored]
+                }
+            }
+            throw new AssertionError("Test failed during CRUD operation. Resources released.", e);
+        }
     }
 
     @Test
