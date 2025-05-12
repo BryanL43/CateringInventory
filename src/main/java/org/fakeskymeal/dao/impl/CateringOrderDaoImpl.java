@@ -2,42 +2,45 @@ package org.fakeskymeal.dao.impl;
 
 import java.io.IOException;
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.fakeskymeal.dao.FacilityDao;
+import org.fakeskymeal.dao.CateringOrderDao;
 import org.fakeskymeal.dao.exception.DaoException;
 
-import org.fakeskymeal.dto.FacilityDto;
+import org.fakeskymeal.dto.CateringOrderDto;
 
 import util.jdbc.ConnectionPool;
 
-public class FacilityDaoImpl extends BaseDaoImpl<FacilityDto> implements FacilityDao {
-    private static final Logger LOGGER = Logger.getLogger(FacilityDaoImpl.class.getName());
+public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implements CateringOrderDao {
+    private static final Logger LOGGER = Logger.getLogger(CateringOrderDaoImpl.class.getName());
 
-    String _tableName = "catering_facilities";
+    String _tableName = "catering_orders";
     String _primaryKey = "id";
-    Properties _queries = null;
+    Properties _queries;
 
-    public FacilityDaoImpl(ConnectionPool pool) {
-        super(pool, FacilityDto.class);
+    public CateringOrderDaoImpl(ConnectionPool pool) {
+        super(pool, CateringOrderDto.class);
 
         _queries = new Properties();
         try {
             _queries.load(
-                this.getClass().getClassLoader().getResourceAsStream("sql.properties")
+                    this.getClass().getClassLoader().getResourceAsStream("sql.properties")
             );
         } catch (IOException io) {
             LOGGER.log(Level.WARNING, "Exception during sql.properties load:", io);
         }
     }
 
-    public FacilityDto get(Integer id) throws DaoException {
+    public CateringOrderDto get(Integer id) throws DaoException {
         return super.get(id);
     }
 
-    public FacilityDto getRow(String field, Object value) throws DaoException {
+    public CateringOrderDto getRow(String field, Object value) throws DaoException {
         return super.getRow(field, value);
     }
 
@@ -52,9 +55,10 @@ public class FacilityDaoImpl extends BaseDaoImpl<FacilityDto> implements Facilit
      * @throws SQLException if a database access error occurs
      */
     @Override
-    protected void prepareInsert(PreparedStatement stmt, FacilityDto dto) throws SQLException {
-        stmt.setString(1, dto.getFacilityName());
-        stmt.setString(2, dto.getFacilityLocation());
+    protected void prepareInsert(PreparedStatement stmt, CateringOrderDto dto) throws SQLException {
+        stmt.setInt(1, dto.getFlightId());
+        stmt.setInt(2, dto.getFacilityId());
+        stmt.setObject(3, dto.getDeliveryTime());
     }
 
     /**
@@ -69,10 +73,11 @@ public class FacilityDaoImpl extends BaseDaoImpl<FacilityDto> implements Facilit
      * @throws SQLException if a database access error occurs
      */
     @Override
-    protected void prepareUpdate(PreparedStatement stmt, FacilityDto dto, String[] params) throws SQLException {
-        stmt.setString(1, params[0]); // new name
-        stmt.setString(2, params[1]); // new location
-        stmt.setInt(3, dto.getFacilityId()); // WHERE id = ?
+    protected void prepareUpdate(PreparedStatement stmt, CateringOrderDto dto, String[] params) throws SQLException {
+        stmt.setInt(1, Integer.parseInt(params[0])); // new flight_id
+        stmt.setInt(2, Integer.parseInt(params[1])); // new facility_id
+        stmt.setObject(3, LocalDateTime.parse(params[2])); // new delivery_time
+        stmt.setInt(4, dto.getOrderId()); // WHERE id = ?
     }
 
     /**
@@ -86,9 +91,10 @@ public class FacilityDaoImpl extends BaseDaoImpl<FacilityDto> implements Facilit
      * @param params the array of new values (e.g., name)
      */
     @Override
-    protected void applyParamsToDto(FacilityDto dto, String[] params) {
-        dto.setFacilityName(params[0]);
-        dto.setFacilityLocation(params[1]);
+    protected void applyParamsToDto(CateringOrderDto dto, String[] params) {
+        dto.setFlightId(Integer.parseInt(params[0]));
+        dto.setFacilityId(Integer.parseInt(params[1]));
+        dto.setDeliveryTime(LocalDateTime.parse(params[2]));
     }
 
     /**
@@ -102,8 +108,8 @@ public class FacilityDaoImpl extends BaseDaoImpl<FacilityDto> implements Facilit
      * @throws SQLException if a database access error occurs
      */
     @Override
-    protected void prepareDelete(PreparedStatement stmt, FacilityDto dto) throws SQLException {
-        stmt.setInt(1, dto.getFacilityId());
+    protected void prepareDelete(PreparedStatement stmt, CateringOrderDto dto) throws SQLException {
+        stmt.setInt(1, dto.getOrderId());
     }
 
     /**
@@ -117,8 +123,8 @@ public class FacilityDaoImpl extends BaseDaoImpl<FacilityDto> implements Facilit
      * @throws SQLException if a database access error occurs or no key is found
      */
     @Override
-    protected void setGeneratedId(ResultSet keys, FacilityDto dto) throws SQLException {
-        dto.setFacilityId(keys.getInt(1));
+    protected void setGeneratedId(ResultSet keys, CateringOrderDto dto) throws SQLException {
+        dto.setOrderId(keys.getInt(1));
     }
 
     /**
@@ -129,14 +135,15 @@ public class FacilityDaoImpl extends BaseDaoImpl<FacilityDto> implements Facilit
      * BaseDaoImpl.
      *
      * @param ResultSet result - the source values from a query to the DB
-     * @param FacilityDto dto - the destination Data Transfer Object
+     * @param CateringOrderDto dto - the destination Data Transfer Object
      */
     @Override
-    protected void convertRStoDto(ResultSet result, FacilityDto dto) throws DaoException {
+    protected void convertRStoDto(ResultSet result, CateringOrderDto dto) throws DaoException {
         try {
-            dto.setFacilityId(result.getInt(1));
-            dto.setFacilityName(result.getString(2));
-            dto.setFacilityLocation(result.getString(3));
+            dto.setOrderId(result.getInt(1));
+            dto.setFlightId(result.getInt(2));
+            dto.setFacilityId(result.getInt(3));
+            dto.setDeliveryTime(result.getObject(4, LocalDateTime.class));
         } catch (SQLException se) {
             throw new DaoException(se.getMessage());
         }
@@ -151,7 +158,7 @@ public class FacilityDaoImpl extends BaseDaoImpl<FacilityDto> implements Facilit
      */
     @Override
     protected String getAllRowsQuery() {
-        return _queries.getProperty("FACILITY_GET_ALL");
+        return _queries.getProperty("CATERING_ORDER_GET_ALL");
     }
 
     /**
@@ -163,7 +170,7 @@ public class FacilityDaoImpl extends BaseDaoImpl<FacilityDto> implements Facilit
      */
     @Override
     protected String getInsertQuery() {
-        return _queries.getProperty("FACILITY_INSERT");
+        return _queries.getProperty("CATERING_ORDER_INSERT");
     }
 
     /**
@@ -175,7 +182,7 @@ public class FacilityDaoImpl extends BaseDaoImpl<FacilityDto> implements Facilit
      */
     @Override
     protected String getDeleteQuery() {
-        return _queries.getProperty("FACILITY_DELETE_ID");
+        return _queries.getProperty("CATERING_ORDER_DELETE_ID");
     }
 
     /**
@@ -187,7 +194,7 @@ public class FacilityDaoImpl extends BaseDaoImpl<FacilityDto> implements Facilit
      */
     @Override
     protected String getUpdateQuery() {
-        return _queries.getProperty("FACILITY_UPDATE_ID");
+        return _queries.getProperty("CATERING_ORDER_UPDATE_ID");
     }
 
     /**

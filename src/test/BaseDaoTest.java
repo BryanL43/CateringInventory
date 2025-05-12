@@ -91,7 +91,7 @@ public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
                     // Object may have already been deleted or not exist [ignored]
                 }
             }
-            throw new AssertionError("Test failed during CRUD operation. Resources released.", e);
+            throw new AssertionError("Test failed during CRUD operation.", e);
         }
     }
 
@@ -128,7 +128,7 @@ public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
                     System.out.println(Thread.currentThread().getName() + " updated rows: " + rowsAffected);
 
                     // Update contention simulation
-                    Thread.sleep(100); // simulate lock duration
+                    Thread.sleep(300); // simulate lock duration
                     conn.commit();
                     System.out.println(Thread.currentThread().getName() + " committed.");
 

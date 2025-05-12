@@ -194,15 +194,15 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
      * BaseDaoImpl.
      *
      * @param ResultSet result - the source values from a query to the DB
-     * @param AirlineDto dto - the destination Data Transfer Object
+     * @param InventoryDto dto - the destination Data Transfer Object
      */
     @Override
-    protected void convertRStoDto(ResultSet result, InventoryDto inventory) throws DaoException {
+    protected void convertRStoDto(ResultSet result, InventoryDto dto) throws DaoException {
         try {
-            inventory.setInventoryId(result.getInt(1));
-            inventory.setFacilityId(result.getInt(2));
-            inventory.setName(result.getString(3));
-            inventory.setUnit(result.getString(4));
+            dto.setInventoryId(result.getInt(1));
+            dto.setFacilityId(result.getInt(2));
+            dto.setName(result.getString(3));
+            dto.setUnit(result.getString(4));
         } catch (SQLException se) {
             throw new DaoException(se.getMessage());
         }

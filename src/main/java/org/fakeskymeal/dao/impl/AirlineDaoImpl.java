@@ -132,11 +132,11 @@ public class AirlineDaoImpl extends BaseDaoImpl<AirlineDto> implements AirlineDa
      * @param AirlineDto dto - the destination Data Transfer Object
      */
     @Override
-    protected void convertRStoDto(ResultSet result, AirlineDto airline) throws DaoException {
+    protected void convertRStoDto(ResultSet result, AirlineDto dto) throws DaoException {
         try {
-            airline.setAirlineId(result.getInt(1));
-            airline.setAirlineName(result.getString(2));
-            airline.setContactInfo(result.getString(3));
+            dto.setAirlineId(result.getInt(1));
+            dto.setAirlineName(result.getString(2));
+            dto.setContactInfo(result.getString(3));
         } catch (SQLException se) {
             throw new DaoException(se.getMessage());
         }

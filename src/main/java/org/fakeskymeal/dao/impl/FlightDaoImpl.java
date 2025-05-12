@@ -201,13 +201,13 @@ public class FlightDaoImpl extends BaseDaoImpl<FlightDto> implements FlightDao {
      * @param FlightDto dto - the destination Data Transfer Object
      */
     @Override
-    protected void convertRStoDto(ResultSet result, FlightDto flight) throws DaoException {
+    protected void convertRStoDto(ResultSet result, FlightDto dto) throws DaoException {
         try {
-            flight.setFlightId(result.getInt(1));
-            flight.setAirlineCompanyId(result.getInt(2));
-            flight.setFlightNumber(result.getString(3));
-            flight.setDepartureTime(result.getObject(4, LocalDateTime.class));
-            flight.setArrivalTime(result.getObject(5, LocalDateTime.class));
+            dto.setFlightId(result.getInt(1));
+            dto.setAirlineCompanyId(result.getInt(2));
+            dto.setFlightNumber(result.getString(3));
+            dto.setDepartureTime(result.getObject(4, LocalDateTime.class));
+            dto.setArrivalTime(result.getObject(5, LocalDateTime.class));
         } catch (SQLException se) {
             throw new DaoException(se.getMessage());
         }
