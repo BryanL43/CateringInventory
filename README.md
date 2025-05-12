@@ -40,6 +40,13 @@ version: 5.10.0
 ```
 [JUnit Jupiter 5.10.0 Source](https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api/5.10.0)
 
+### JUnit Platform Suite
+```sh
+version: 1.9.1
+```
+[JUnit Platform Suite 1.9.1 Source](https://mvnrepository.com/artifact/org.junit.platform/junit-platform-suite/1.9.1)
+
+
 ## Troubleshooting
 - Ensure the `.env` file is configured correctly.
 - Ensure `src/` directory is marked as `Sources Root`.

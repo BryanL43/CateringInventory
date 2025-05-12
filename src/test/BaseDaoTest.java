@@ -1,4 +1,5 @@
 import util.jdbc.ConnectionPool;
+import util.jdbc.ConnectionPoolSingleton;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,23 +14,13 @@ import org.fakeskymeal.dao.BaseDao;
 import org.fakeskymeal.dao.exception.DaoException;
 
 import org.junit.jupiter.api.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
     private static final Logger LOGGER = Logger.getLogger(BaseDaoTest.class.getName());
-    protected ConnectionPool pool;
-
-    @BeforeEach
-    void setUp() {
-        pool = new ConnectionPool(3);
-    }
-
-    @AfterEach
-    void tearDown() {
-        if (pool != null) {
-            pool.shutdown();
-        }
-    }
+    protected final ConnectionPool pool = ConnectionPoolSingleton.getInstance();
 
     protected abstract D getDao();
     protected abstract T createTestDto();
@@ -65,7 +56,7 @@ public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
     }
 
     @Test
-    void testCRUD() throws DaoException {
+    void testCRUD() {
         T dto = createTestDto();
         boolean inserted = false, deleted = false;
 
@@ -74,6 +65,7 @@ public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
             getDao().save(dto);
             inserted = true;
             assertTrue(getId(dto) > 0, "ID should be set after insert");
+            System.out.println("Created " + dto.getClass().getSimpleName() + " with ID: " + getId(dto));
 
             // Retrieve
             T reloaded = getDao().get(getId(dto));
@@ -84,12 +76,13 @@ public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
             getDao().update(reloaded, params);
             verifyUpdated(reloaded, params);
 
-            System.out.println("\nAfter update:\n" + proxyToJson(reloaded));
+            System.out.println("\nAfter update:\n" + proxyToJson(reloaded) + "\n");
 
             // Delete
             getDao().delete(reloaded);
             deleted = true;
             assertThrows(DaoException.class, () -> getDao().get(getId(reloaded)));
+            System.out.println("Deleted " + reloaded.getClass().getSimpleName() + " with ID: " + getId(reloaded));
         } catch (Exception e) {
             if (inserted && !deleted) {
                 try {
@@ -135,9 +128,11 @@ public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
                     System.out.println(Thread.currentThread().getName() + " updated rows: " + rowsAffected);
 
                     // Update contention simulation
-                    Thread.sleep(300); // simulate lock duration
+                    Thread.sleep(100); // simulate lock duration
                     conn.commit();
                     System.out.println(Thread.currentThread().getName() + " committed.");
+
+                    conn.setAutoCommit(true); // reset to prevent deadlocks
                 } catch (Exception e) {
                     LOGGER.log(Level.SEVERE, Thread.currentThread().getName() + " failed: ", e);
                 } finally {

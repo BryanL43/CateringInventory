@@ -28,6 +28,13 @@
             <artifactId>junit-jupiter</artifactId>
             <version>5.10.0</version>
         </dependency>
+
+        <!-- JUnit Platform Suite -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
+            <version>1.9.1</version>
+        </dependency>
     </dependencies>
 
 </project>
