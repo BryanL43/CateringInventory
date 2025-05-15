@@ -222,7 +222,7 @@ public class BeverageDaoImpl extends BaseDaoImpl<BeverageDto> implements Beverag
      * @return String - Table Name
      */
     @Override
-    protected String getTableName() {
+    public String getTableName() {
         return _tableName;
     }
 

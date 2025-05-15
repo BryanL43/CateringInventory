@@ -264,7 +264,7 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
      * @return String - Table Name
      */
     @Override
-    protected String getTableName() {
+    public String getTableName() {
         return _tableName;
     }
 

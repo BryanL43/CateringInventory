@@ -44,7 +44,7 @@ public abstract class BaseDaoImpl<T extends BaseDto> implements BaseDao<T> {
     protected abstract String getInsertQuery();
     protected abstract String getDeleteQuery();
     protected abstract String getUpdateQuery();
-    protected abstract String getTableName();
+    public abstract String getTableName();
     protected abstract String getPrimaryKey();
 
     /**

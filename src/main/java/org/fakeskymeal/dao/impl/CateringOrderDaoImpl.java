@@ -205,7 +205,7 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      * @return String - Table Name
      */
     @Override
-    protected String getTableName() {
+    public String getTableName() {
         return _tableName;
     }
 

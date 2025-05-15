@@ -269,7 +269,7 @@ public class FlightDaoImpl extends BaseDaoImpl<FlightDto> implements FlightDao {
      * @return String - Table Name
      */
     @Override
-    protected String getTableName() {
+    public String getTableName() {
         return _tableName;
     }
 

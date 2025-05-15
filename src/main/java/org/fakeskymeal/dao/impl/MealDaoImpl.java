@@ -223,7 +223,7 @@ public class MealDaoImpl extends BaseDaoImpl<MealDto> implements MealDao {
      * @return String - Table Name
      */
     @Override
-    protected String getTableName() {
+    public String getTableName() {
         return _tableName;
     }
 

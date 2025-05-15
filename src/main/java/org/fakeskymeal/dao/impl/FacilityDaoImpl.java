@@ -198,7 +198,7 @@ public class FacilityDaoImpl extends BaseDaoImpl<FacilityDto> implements Facilit
      * @return String - Table Name
      */
     @Override
-    protected String getTableName() {
+    public String getTableName() {
         return _tableName;
     }
 

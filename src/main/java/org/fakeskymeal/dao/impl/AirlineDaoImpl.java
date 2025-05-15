@@ -198,7 +198,7 @@ public class AirlineDaoImpl extends BaseDaoImpl<AirlineDto> implements AirlineDa
      * @return String - Table Name
      */
     @Override
-    protected String getTableName() {
+    public String getTableName() {
         return _tableName;
     }
 

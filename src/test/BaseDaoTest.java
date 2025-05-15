@@ -1,3 +1,4 @@
+import org.fakeskymeal.dao.impl.BaseDaoImpl;
 import util.jdbc.ConnectionPool;
 import util.jdbc.ConnectionPoolSingleton;
 
@@ -59,12 +60,14 @@ public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
     void testCRUD() {
         T dto = createTestDto();
         boolean inserted = false, deleted = false;
+        int originalAutoIncrement = -1;
 
         try {
             // Create
             getDao().save(dto);
             inserted = true;
             assertTrue(getId(dto) > 0, "ID should be set after insert");
+            originalAutoIncrement = getId(dto);
             System.out.println("Created " + dto.getClass().getSimpleName() + " with ID: " + getId(dto));
 
             // Retrieve
@@ -92,6 +95,22 @@ public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
                 }
             }
             throw new AssertionError("Test failed during CRUD operation.", e);
+        } finally {
+            // Workaround to auto incrementing on CRUD testing
+            if (inserted && originalAutoIncrement > 0) {
+                String sql = "ALTER TABLE " + ((BaseDaoImpl<?>) getDao()).getTableName() + " AUTO_INCREMENT = ?";
+
+                try (Connection conn = pool.getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                    pstmt.setInt(1, originalAutoIncrement);
+                    pstmt.executeUpdate();
+
+                } catch (SQLException se) {
+                    System.err.println("Failed to reset AUTO_INCREMENT: " + se.getMessage());
+                }
+            }
+
         }
     }
 
