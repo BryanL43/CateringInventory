@@ -12,6 +12,7 @@ public class ConnectionPool {
     private static final Logger LOGGER = Logger.getLogger(ConnectionPool.class.getName());
     private final BlockingQueue<Connection> pool;
     private final int poolSize;
+    private boolean isShutdown = false;
 
     public ConnectionPool(int size) {
         pool = new ArrayBlockingQueue<>(size);
@@ -27,12 +28,28 @@ public class ConnectionPool {
         }
     }
 
-    // Overloaded method for default timeout
+    /**
+     * Override getConnection method with a default timeout.
+     *
+     * @return The JDBC connection.
+     * @throws SQLException Any exceptions that occur with JDBC connection.
+     */
     public Connection getConnection() throws SQLException {
         return getConnection(3000); // Default timeout of 3 seconds
     }
 
+    /**
+     * Acquire a JDBC connection to the database.
+     *
+     * @param long timeoutMillis - The set timeout to wait for an available connection.
+     * @return The JDBC connection.
+     * @throws SQLException
+     */
     public Connection getConnection(long timeoutMillis) throws SQLException {
+        if (isShutdown) {
+            throw new IllegalStateException("Connection pool is already shut down");
+        }
+
         try {
             Connection conn = pool.poll(timeoutMillis, TimeUnit.MILLISECONDS);
             if (conn == null) {
@@ -46,6 +63,11 @@ public class ConnectionPool {
         }
     }
 
+    /**
+     * Returns the acquired JDBC connection back to the pool and does not close it.
+     *
+     * @param Connection conn The JDBC connection to be released back to the pool.
+     */
     public void releaseConnection(Connection conn) {
         try {
             if (conn != null && !conn.isClosed()) {
@@ -58,9 +80,13 @@ public class ConnectionPool {
             } catch (SQLException se) {
                 LOGGER.warning("Also failed to close connection: " + se.getMessage());
             }
-        } // finally will unintentionally close it from pool
+        } // finally will unintentionally close it from pool, so it's not necessary
     }
 
+    /**
+     * Shutdown the connection pool.
+     * It closes all the connection within the pool.
+     */
     public void shutdown() {
         Connection conn;
         while ((conn = pool.poll()) != null) {
@@ -70,6 +96,7 @@ public class ConnectionPool {
                 LOGGER.warning("Failed to close DB connection: " + ex.getMessage());
             }
         }
+        isShutdown = true;
         System.out.println("Connection pool shut down successfully.");
     }
 

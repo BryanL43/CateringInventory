@@ -2,32 +2,32 @@ package org.fakeskymeal.dto;
 
 import java.sql.Date;
 
-public class BeverageDto extends BaseDto {
-    int beverageId;
+public class MealDto extends BaseDto {
+    int mealId;
     int inventoryId;
     String name;
-    String brand;
+    String mealType;
+    boolean isVegetarian;
     int quantity;
-    float weight; // Per individual quantity
-    Date deliveredDate;
-    Date expirationDate;
+    float weight;
+    Date createdDate;
     String description;
 
-    public BeverageDto() {
+    public MealDto() {
         super();
     }
 
     @Override
     public int getId() {
-        return beverageId;
+        return mealId;
     }
 
-    public int getBeverageId() {
-        return beverageId;
+    public int getMealId() {
+        return mealId;
     }
 
-    public void setBeverageId(int beverageId) {
-        this.beverageId = beverageId;
+    public void setMealId(int mealId) {
+        this.mealId = mealId;
     }
 
     public int getInventoryId() {
@@ -46,12 +46,20 @@ public class BeverageDto extends BaseDto {
         this.name = name;
     }
 
-    public String getBrand() {
-        return brand;
+    public String getMealType() {
+        return mealType;
     }
 
-    public void setBrand(String brand) {
-        this.brand = brand;
+    public void setMealType(String mealType) {
+        this.mealType = mealType;
+    }
+
+    public boolean isVegetarian() {
+        return isVegetarian;
+    }
+
+    public void setVegetarian(boolean vegetarian) {
+        isVegetarian = vegetarian;
     }
 
     public int getQuantity() {
@@ -70,20 +78,12 @@ public class BeverageDto extends BaseDto {
         this.weight = weight;
     }
 
-    public Date getDeliveredDate() {
-        return deliveredDate;
+    public Date getCreatedDate() {
+        return createdDate;
     }
 
-    public void setDeliveredDate(Date deliveredDate) {
-        this.deliveredDate = deliveredDate;
-    }
-
-    public Date getExpirationDate() {
-        return expirationDate;
-    }
-
-    public void setExpirationDate(Date expirationDate) {
-        this.expirationDate = expirationDate;
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
     }
 
     public String getDescription() {

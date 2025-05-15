@@ -4,9 +4,8 @@ import org.junit.platform.suite.api.Suite;
 @Suite
 @SelectClasses({
     AirlineTest.class,
-    FacilityTest.class,
-    InventoryTest.class,
     FlightTest.class,
+    BeverageTest.class,
     ShutdownTest.class
 })
 public class DaoTestSuite {}
