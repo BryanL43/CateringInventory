@@ -152,11 +152,7 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
             rs = stmt.executeQuery();
             while (rs.next()) {
                 InventoryDto inventory = new InventoryDto();
-                inventory.setInventoryId(rs.getInt("id"));
-                inventory.setFacilityId(rs.getInt("facility_id"));
-                inventory.setName(rs.getString("name"));
-                inventory.setUnit(rs.getString("unit"));
-
+                convertRStoDto(rs, inventory);
                 inventories.add(inventory);
             }
         } catch (SQLException se) {

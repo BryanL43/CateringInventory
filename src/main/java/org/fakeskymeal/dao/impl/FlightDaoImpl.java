@@ -155,12 +155,7 @@ public class FlightDaoImpl extends BaseDaoImpl<FlightDto> implements FlightDao {
             rs = stmt.executeQuery();
             while (rs.next()) {
                 FlightDto flight = new FlightDto();
-                flight.setFlightId(rs.getInt("id"));
-                flight.setAirlineCompanyId(rs.getInt("airline_company_id"));
-                flight.setFlightNumber(rs.getString("flight_number"));
-                flight.setDepartureTime(rs.getObject("departure_time", LocalDateTime.class));
-                flight.setArrivalTime(rs.getObject("arrival_time", LocalDateTime.class));
-
+                convertRStoDto(rs, flight);
                 flights.add(flight);
             }
         } catch (SQLException se) {
@@ -292,7 +287,7 @@ public class FlightDaoImpl extends BaseDaoImpl<FlightDto> implements FlightDao {
      *
      * @return String - SELECT query
      */
-    String getFlightsByAirlineNameQuery() {
+    private String getFlightsByAirlineNameQuery() {
         return _queries.getProperty("FLIGHT_GET_BY_AIRLINE_NAME");
     }
 }

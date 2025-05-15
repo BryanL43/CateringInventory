@@ -12,7 +12,9 @@ import java.util.logging.Logger;
 import org.fakeskymeal.dao.CateringOrderDao;
 import org.fakeskymeal.dao.exception.DaoException;
 
+import org.fakeskymeal.dto.BeverageDto;
 import org.fakeskymeal.dto.CateringOrderDto;
+import org.fakeskymeal.dto.MealDto;
 
 import util.jdbc.ConnectionPool;
 
@@ -127,6 +129,299 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
         dto.setOrderId(keys.getInt(1));
     }
 
+
+    /**
+     * getBeveragesForOrder
+     *
+     * Acquire all beverages associated with a Catering Order id.
+     *
+     * @param orderId The catering order id.
+     * @return A list of BeverageDto
+     */
+    public List<BeverageDto> getBeveragesForOrder(int orderId) throws DaoException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        List<BeverageDto> beverages = new ArrayList<>();
+
+        try {
+            conn = pool.getConnection();
+            stmt = conn.prepareStatement(getBeveragesByOrderIdQuery());
+
+            stmt.setInt(1, orderId);
+
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                BeverageDto beverage = new BeverageDto();
+                beverage.setBeverageId(rs.getInt(1));
+                beverage.setInventoryId(rs.getInt(2));
+                beverage.setName(rs.getString(3));
+                beverage.setBrand(rs.getString(4));
+                beverage.setQuantity(rs.getInt(5));
+                beverage.setWeight(rs.getFloat(6));
+                beverage.setDeliveredDate(rs.getDate(7));
+                beverage.setExpirationDate(rs.getDate(8));
+                beverage.setDescription(rs.getString(9));
+                beverages.add(beverage);
+            }
+        } catch (SQLException se) {
+            throw new DaoException("Failed to get beverages for order ID " + orderId, se);
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing ResultSet: ", se.getMessage());
+                }
+            }
+
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
+                }
+            }
+
+            if (conn != null) {
+                pool.releaseConnection(conn);
+            }
+        }
+
+        return beverages;
+    }
+
+    /**
+     * addBeverageToOrder
+     *
+     * Associate a beverage to a catering order via a many-to-many (join table) relationship.
+     *
+     * @param orderId The catering order id.
+     * @param beverageId The beverage id.
+     * @param quantity The number of said beverages to add to the catering order.
+     * @throws DaoException any errors that occur with connection, statement, and resultset.
+     */
+    public void addBeverageToOrder(int orderId, int beverageId, int quantity) throws DaoException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = pool.getConnection();
+            stmt = conn.prepareStatement(getInsertBeverageToOrderQuery());
+
+            stmt.setInt(1, orderId);
+            stmt.setInt(2, beverageId);
+            stmt.setInt(3, quantity);
+
+            int rows = stmt.executeUpdate();
+            if (rows == 0) {
+                throw new DaoException("Failed to insert beverage id " + beverageId + " to catering order id " + orderId);
+            }
+        } catch (SQLException se) {
+            throw new DaoException(se.getMessage());
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
+                }
+            }
+
+            if (conn != null) {
+                pool.releaseConnection(conn);
+            }
+        }
+    }
+
+    /**
+     * removeBeverageFromOrder
+     *
+     * Remove a beverage from a catering order via a many-to-many (join table) relationship.
+     *
+     * @param orderId The catering order id.
+     * @param beverageId The beverage id.
+     * @throws DaoException any errors that occur with connection, statement, and resultset.
+     */
+    public void removeBeverageFromOrder(int orderId, int beverageId) throws DaoException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = pool.getConnection();
+            stmt = conn.prepareStatement(getDeleteBeverageFromOrderQuery());
+
+            stmt.setInt(1, orderId);
+            stmt.setInt(2, beverageId);
+
+            int rowsDeleted = stmt.executeUpdate();
+            if (rowsDeleted == 0) {
+                throw new DaoException("Failed to delete beverage id " + beverageId + " from catering order id " + orderId);
+            }
+        } catch (SQLException se) {
+            throw new DaoException(se.getMessage());
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
+                }
+            }
+
+            if (conn != null) {
+                pool.releaseConnection(conn);
+            }
+        }
+    }
+
+    /**
+     * getMealsForOrder
+     *
+     * Acquire all meals associated with a Catering Order id.
+     *
+     * @param orderId The catering order id.
+     * @return A list of BeverageDto
+     */
+    public List<MealDto> getMealsForOrder(int orderId) throws DaoException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        List<MealDto> meals = new ArrayList<>();
+
+        try {
+            conn = pool.getConnection();
+            stmt = conn.prepareStatement(getMealsByOrderIdQuery());
+
+            stmt.setInt(1, orderId);
+
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                MealDto meal = new MealDto();
+                meal.setMealId(rs.getInt(1));
+                meal.setInventoryId(rs.getInt(2));
+                meal.setName(rs.getString(3));
+                meal.setMealType(rs.getString(4));
+                meal.setVegetarian(rs.getBoolean(5));
+                meal.setQuantity(rs.getInt(6));
+                meal.setWeight(rs.getFloat(7));
+                meal.setCreatedDate(rs.getDate(8));
+                meal.setDescription(rs.getString(9));
+                meals.add(meal);
+            }
+        } catch (SQLException se) {
+            throw new DaoException("Failed to get beverages for order ID " + orderId, se);
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing ResultSet: ", se.getMessage());
+                }
+            }
+
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
+                }
+            }
+
+            if (conn != null) {
+                pool.releaseConnection(conn);
+            }
+        }
+
+        return meals;
+    }
+
+    /**
+     * addMealToOrder
+     *
+     * Associate a meal for a catering order via a many-to-many (join table) relationship.
+     *
+     * @param orderId The catering order id.
+     * @param mealId The beverage id.
+     * @param quantity The number of said beverages to add to the catering order.
+     * @throws DaoException any errors that occur with connection, statement, and resultset.
+     */
+    public void addMealToOrder(int orderId, int mealId, int quantity) throws DaoException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = pool.getConnection();
+            stmt = conn.prepareStatement(getInsertMealToOrderQuery());
+
+            stmt.setInt(1, orderId);
+            stmt.setInt(2, mealId);
+            stmt.setInt(3, quantity);
+
+            int rows = stmt.executeUpdate();
+            if (rows == 0) {
+                throw new DaoException("Failed to insert meal id " + mealId + " to catering order id " + orderId);
+            }
+        } catch (SQLException se) {
+            throw new DaoException(se.getMessage());
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
+                }
+            }
+
+            if (conn != null) {
+                pool.releaseConnection(conn);
+            }
+        }
+    }
+
+    /**
+     * removeMealFromOrder
+     *
+     * Remove a meal from a catering order via a many-to-many (join table) relationship.
+     *
+     * @param orderId The catering order id.
+     * @param mealId The meal id.
+     * @throws DaoException any errors that occur with connection, statement, and resultset.
+     */
+    public void removeMealFromOrder(int orderId, int mealId) throws DaoException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = pool.getConnection();
+            stmt = conn.prepareStatement(getDeleteMealFromOrderQuery());
+
+            stmt.setInt(1, orderId);
+            stmt.setInt(2, mealId);
+
+            int rowsDeleted = stmt.executeUpdate();
+            if (rowsDeleted == 0) {
+                throw new DaoException("Failed to delete meal id " + mealId + " from catering order id " + orderId);
+            }
+        } catch (SQLException se) {
+            throw new DaoException(se.getMessage());
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException se) {
+                    LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
+                }
+            }
+
+            if (conn != null) {
+                pool.releaseConnection(conn);
+            }
+        }
+    }
+
     /**
      * convertRStoDto
      *
@@ -219,5 +514,36 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
     @Override
     protected String getPrimaryKey() {
         return _primaryKey;
+    }
+
+    /**
+     * getBeveragesByOrderIdQuery
+     *
+     * Returns the Beverages associated to the Catering Order
+     *
+     * @return String - SELECT query
+     */
+    private String getBeveragesByOrderIdQuery() {
+        return _queries.getProperty("GET_BEVERAGES_FOR_ORDER");
+    }
+
+    private String getInsertBeverageToOrderQuery() {
+        return _queries.getProperty("INSERT_BEVERAGE_TO_ORDER");
+    }
+
+    private String getDeleteBeverageFromOrderQuery() {
+        return _queries.getProperty("DELETE_BEVERAGE_FROM_ORDER");
+    }
+
+    private String getMealsByOrderIdQuery() {
+        return _queries.getProperty("GET_MEALS_FOR_ORDER");
+    }
+
+    private String getInsertMealToOrderQuery() {
+        return _queries.getProperty("INSERT_MEAL_TO_ORDER");
+    }
+
+    private String getDeleteMealFromOrderQuery() {
+        return _queries.getProperty("DELETE_MEAL_FROM_ORDER");
     }
 }
