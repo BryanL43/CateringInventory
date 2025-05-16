@@ -20,6 +20,7 @@ import util.jdbc.ConnectionPool;
  * Modifications:
  *
  * 		04/20/2024 - jhui - Created
+ * 	    05/12/2025 - Bryan - Modified
  */
 public abstract class BaseDaoImpl<T extends BaseDto> implements BaseDao<T> {
     private static final Logger LOGGER = Logger.getLogger(BaseDaoImpl.class.getName());
@@ -50,9 +51,10 @@ public abstract class BaseDaoImpl<T extends BaseDto> implements BaseDao<T> {
     /**
      * createDtoInstance
      *
-     * Internal factory method for creating Dto instances of Type T
+     * Internal factory method for creating Dto instances of Type T.
      *
-     * @return the newly instantiated Dto instance
+     * @return the newly instantiated Dto instance.
+     * @throws DaoException Any errors that occur when instantiating the DTO instance.
      */
     protected T createDtoInstance() throws DaoException {
         try {
@@ -68,8 +70,9 @@ public abstract class BaseDaoImpl<T extends BaseDto> implements BaseDao<T> {
      * Given a primary key value, will return the corresponding row in DTO
      * format.
      *
-     * @param Integer id - the primary key value
-     * @return the DTO that corresponds to the row with the pKey of id
+     * @param Integer id - The primary key value.
+     * @return the DTO that corresponds to the row with the pKey of id.
+     * @throws DaoException Any errors that occur when retrieving the DTO instance.
      */
     public T get(Integer id) throws DaoException {
         List<T> all = getMultipleRows(getPrimaryKey(), id);
@@ -85,9 +88,10 @@ public abstract class BaseDaoImpl<T extends BaseDto> implements BaseDao<T> {
      * Given a field and value for a WHERE clause, this method will return
      * the first row that matches the condition.
      *
-     * @param String field - database column name to filter on
-     * @param Object value - value for the filter
+     * @param String field - Database column name to filter on.
+     * @param Object value - Value for the filter.
      * @return first DTO that matches "field = value"
+     * @throws DaoException Any errors that occur when retrieving the DTO instance.
      */
     public T getRow(String field, Object value) throws DaoException {
         List<T> all = getMultipleRows(field, value);
@@ -103,9 +107,10 @@ public abstract class BaseDaoImpl<T extends BaseDto> implements BaseDao<T> {
      * Given a field and value for a WHERE clause, this method will return
      * all the rows that matches the condition.
      *
-     * @param String field - database column name to filter on
-     * @param Object value - value for the filter
+     * @param String field - Database column name to filter on.
+     * @param Object value - Value for the filter.
      * @return List of DTOs that match "field = value"
+     * @throws DaoException Any errors that occur when retrieving the DTO instance.
      */
     public List<T> getRows(String field, Object value) throws DaoException {
         List<T> all = getMultipleRows(field, value);
@@ -119,9 +124,10 @@ public abstract class BaseDaoImpl<T extends BaseDto> implements BaseDao<T> {
      * getAll
      *
      * Retrieve all the rows for this table and convert the rows into a List
-     * of DTOs
+     * of DTOs.
      *
-     * @return List of DTOs for all the rows in the table
+     * @return List of DTOs for all the rows in the table.
+     * @throws DaoException Any errors that occur when retrieving the DTO instance.
      */
     public List<T> getAll() throws DaoException {
         List<T> all = getMultipleRows(null, null);
@@ -137,7 +143,8 @@ public abstract class BaseDaoImpl<T extends BaseDto> implements BaseDao<T> {
      * General purpose method to retrieve rows from the database and convert them
      * into Data Transfer Objects (DTOs).
      *
-     * @return List of the DTOs
+     * @return List of the DTOs.
+     * @throws DaoException Any errors that occur when retrieving the DTO instance.
      */
     protected List<T> getMultipleRows(String field, Object value) throws DaoException {
         List<T> all = new ArrayList<>();
@@ -193,9 +200,10 @@ public abstract class BaseDaoImpl<T extends BaseDto> implements BaseDao<T> {
     /**
      * save
      *
-     * Convert the DTO into a SQL row and INSERT into the table
+     * Convert the DTO into a SQL row and INSERT into the table.
      *
-     * @param T dto - DTO that contains the values for the new row
+     * @param T dto - DTO that contains the values for the new row.
+     * @throws DaoException Any errors that occur when inserting DTO into the database.
      */
     @Override
     public void save(T dto) throws DaoException {
@@ -250,11 +258,11 @@ public abstract class BaseDaoImpl<T extends BaseDto> implements BaseDao<T> {
      * update
      *
      * Update the corresponding row in the database for the DTO with the
-     * values in params
+     * values in params.
      *
-     * @param T dto - pull the primary key out of t
-     * @param String[] params - values to update the row
-     *
+     * @param T dto - Pull the primary key out of t.
+     * @param String[] params - Values to update the row.
+     * @throws DaoException Any errors that occur when updating DTO to the database.
      */
     @Override
     public void update(T dto, String[] params) throws DaoException {
@@ -293,10 +301,10 @@ public abstract class BaseDaoImpl<T extends BaseDto> implements BaseDao<T> {
     /**
      * delete
      *
-     * Delete the corresponding row in the database for the DTO
+     * Delete the corresponding row in the database for the DTO.
      *
-     * @param T dto - pull the primary key out of t
-     *
+     * @param T dto - Pull the primary key out of t.
+     * @throws DaoException Any errors that occur when deleting DTO from the database.
      */
     @Override
     public void delete(T dto) throws DaoException {

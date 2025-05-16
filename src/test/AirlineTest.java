@@ -8,6 +8,12 @@ import org.fakeskymeal.dto.AirlineDto;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * AirlineTest
+ *
+ * The integration test object for the Airline entity in the database.
+ * Sets up the parameters for the BaseDaoTest to execute.
+ */
 public class AirlineTest extends BaseDaoTest<AirlineDao, AirlineDto> {
     private AirlineDao airlineDao;
 
@@ -117,7 +123,7 @@ public class AirlineTest extends BaseDaoTest<AirlineDao, AirlineDto> {
      *
      * @param stmt The prepared statement object.
      * @param id The p-key id of the test entry.
-     * @throws SQLException Any setString exceptions.
+     * @throws SQLException Any statement set exceptions.
      */
     @Override
     protected void prepareContentionUpdate(PreparedStatement stmt, int id) throws SQLException {

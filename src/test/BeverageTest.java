@@ -10,6 +10,12 @@ import org.fakeskymeal.dto.BeverageDto;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * BeverageTest
+ *
+ * The integration test object for the Beverage entity in the database.
+ * Sets up the parameters for the BaseDaoTest to execute.
+ */
 public class BeverageTest extends BaseDaoTest<BeverageDao, BeverageDto> {
     private static BeverageDao beverageDao;
 
@@ -145,7 +151,7 @@ public class BeverageTest extends BaseDaoTest<BeverageDao, BeverageDto> {
      *
      * @param stmt The prepared statement object.
      * @param id The p-key id of the test entry.
-     * @throws SQLException Any setString exceptions.
+     * @throws SQLException Any statement set exceptions.
      */
     @Override
     protected void prepareContentionUpdate(PreparedStatement stmt, int id) throws SQLException {

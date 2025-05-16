@@ -13,6 +13,12 @@ import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * ConnectionPoolTest
+ *
+ * The integration test object for instantiating and validating
+ * the connection pool's integrity.
+ */
 public class ConnectionPoolTest {
     private static final Logger LOGGER = Logger.getLogger(ConnectionPoolTest.class.getName());
     private ConnectionPool pool;

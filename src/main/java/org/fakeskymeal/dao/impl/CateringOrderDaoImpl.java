@@ -18,6 +18,11 @@ import org.fakeskymeal.dto.MealDto;
 
 import util.jdbc.ConnectionPool;
 
+/**
+ * CateringOrderDaoImpl
+ *
+ * Implementation for CateringOrderDao (Data Access Object).
+ */
 public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implements CateringOrderDao {
     private static final Logger LOGGER = Logger.getLogger(CateringOrderDaoImpl.class.getName());
 
@@ -28,6 +33,7 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
     public CateringOrderDaoImpl(ConnectionPool pool) {
         super(pool, CateringOrderDto.class);
 
+        // Load the SQL queries
         _queries = new Properties();
         try {
             _queries.load(
@@ -38,10 +44,31 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
         }
     }
 
+    /**
+     * get
+     *
+     * Method redirect, given a primary key value, will return the corresponding row in DTO
+     * format.
+     *
+     * @param Integer id - The primary key value.
+     * @return the DTO that corresponds to the row with the pKey of id.
+     * @throws DaoException Any errors that occur when retrieving the DTO instance.
+     */
     public CateringOrderDto get(Integer id) throws DaoException {
         return super.get(id);
     }
 
+    /**
+     * getRow
+     *
+     * Method redirect, given a field and value for a WHERE clause, this method will return
+     * the first row that matches the condition.
+     *
+     * @param String field - Database column name to filter on.
+     * @param Object value - Value for the filter.
+     * @return first DTO that matches "field = value"
+     * @throws DaoException Any errors that occur when retrieving the DTO instance.
+     */
     public CateringOrderDto getRow(String field, Object value) throws DaoException {
         return super.getRow(field, value);
     }
@@ -52,9 +79,9 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      * This method is called by the generic save() logic in BaseDaoImpl to bind
      * specific column values (e.g., name) into the SQL INSERT query.
      *
-     * @param stmt the prepared statement to populate
-     * @param dto the Data Transfer Object containing the values to insert
-     * @throws SQLException if a database access error occurs
+     * @param PreparedStatement stmt - The prepared statement to populate.
+     * @param CateringOrderDto dto - The Data Transfer Object containing the values to insert.
+     * @throws SQLException if a database access error occurs.
      */
     @Override
     protected void prepareInsert(PreparedStatement stmt, CateringOrderDto dto) throws SQLException {
@@ -69,10 +96,10 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      * This method binds the new field values from the {@code params} array and the primary key
      * from the {@code dto} to the prepared statement.
      *
-     * @param stmt the prepared statement to populate
-     * @param dto the Data Transfer Object containing the primary key (ID)
-     * @param params an array of new values to apply (e.g., name)
-     * @throws SQLException if a database access error occurs
+     * @param PreparedStatement stmt - The prepared statement to populate.
+     * @param CateringOrderDto dto - The Data Transfer Object containing the primary key (ID).
+     * @param String[] params - An array of new values to apply (e.g., name).
+     * @throws SQLException if a database access error occurs.
      */
     @Override
     protected void prepareUpdate(PreparedStatement stmt, CateringOrderDto dto, String[] params) throws SQLException {
@@ -89,8 +116,8 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      * This method is called after a successful UPDATE operation to synchronize the
      * in-memory DTO with the new values that were written to the database.
      *
-     * @param dto the Data Transfer Object to update
-     * @param params the array of new values (e.g., name)
+     * @param CateringOrderDto dto - The Data Transfer Object to update.
+     * @param String[] params - An array of new values (e.g., name).
      */
     @Override
     protected void applyParamsToDto(CateringOrderDto dto, String[] params) {
@@ -105,9 +132,9 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      * Populates the {@link PreparedStatement} with the primary key needed to delete
      * the specified Data Transfer Object from the database.
      *
-     * @param stmt the prepared statement to populate
-     * @param dto the Data Transfer Object containing the ID to delete
-     * @throws SQLException if a database access error occurs
+     * @param PreparedStatement stmt - The prepared statement to populate
+     * @param CateringOrderDto dto - The Data Transfer Object containing the ID to delete.
+     * @throws SQLException if a database access error occurs.
      */
     @Override
     protected void prepareDelete(PreparedStatement stmt, CateringOrderDto dto) throws SQLException {
@@ -120,9 +147,9 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      * Extracts the generated primary key from the given {@link ResultSet}
      * and assigns it to the Data Transfer Object after a successful INSERT.
      *
-     * @param keys the ResultSet containing generated keys
-     * @param dto the Data Transfer Object to update with the generated ID
-     * @throws SQLException if a database access error occurs or no key is found
+     * @param ResultSet keys - The ResultSet containing generated keys.
+     * @param CateringOrderDto dto - The Data Transfer Object to update with the generated ID.
+     * @throws SQLException if a database access error occurs or no key is found.
      */
     @Override
     protected void setGeneratedId(ResultSet keys, CateringOrderDto dto) throws SQLException {
@@ -135,8 +162,9 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      *
      * Acquire all beverages associated with a Catering Order id.
      *
-     * @param orderId The catering order id.
-     * @return A list of BeverageDto
+     * @param int orderId - The catering order id.
+     * @return A list of BeverageDto.
+     * @throws DaoException Any errors that occur during connection, statement, and resultset.
      */
     public List<BeverageDto> getBeveragesForOrder(int orderId) throws DaoException {
         Connection conn = null;
@@ -197,10 +225,10 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      *
      * Associate a beverage to a catering order via a many-to-many (join table) relationship.
      *
-     * @param orderId The catering order id.
-     * @param beverageId The beverage id.
-     * @param quantity The number of said beverages to add to the catering order.
-     * @throws DaoException any errors that occur with connection, statement, and resultset.
+     * @param int orderId - The catering order id.
+     * @param int beverageId - The beverage id.
+     * @param int quantity - The number of said beverages to add to the catering order.
+     * @throws DaoException Any errors that occur during connection, statement, and resultset.
      */
     public void addBeverageToOrder(int orderId, int beverageId, int quantity) throws DaoException {
         Connection conn = null;
@@ -240,9 +268,9 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      *
      * Remove a beverage from a catering order via a many-to-many (join table) relationship.
      *
-     * @param orderId The catering order id.
-     * @param beverageId The beverage id.
-     * @throws DaoException any errors that occur with connection, statement, and resultset.
+     * @param int orderId - The catering order id.
+     * @param int beverageId - The beverage id.
+     * @throws DaoException Any errors that occur during connection, statement, and resultset.
      */
     public void removeBeverageFromOrder(int orderId, int beverageId) throws DaoException {
         Connection conn = null;
@@ -281,8 +309,9 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      *
      * Acquire all meals associated with a Catering Order id.
      *
-     * @param orderId The catering order id.
-     * @return A list of BeverageDto
+     * @param int orderId - The catering order id.
+     * @return A list of MealDto.
+     * @throws DaoException Any errors that occur during connection, statement, and resultset.
      */
     public List<MealDto> getMealsForOrder(int orderId) throws DaoException {
         Connection conn = null;
@@ -343,10 +372,10 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      *
      * Associate a meal for a catering order via a many-to-many (join table) relationship.
      *
-     * @param orderId The catering order id.
-     * @param mealId The beverage id.
-     * @param quantity The number of said beverages to add to the catering order.
-     * @throws DaoException any errors that occur with connection, statement, and resultset.
+     * @param int orderId - The catering order id.
+     * @param int mealId - The beverage id.
+     * @param int quantity - The number of said beverages to add to the catering order.
+     * @throws DaoException Any errors that occur during connection, statement, and resultset.
      */
     public void addMealToOrder(int orderId, int mealId, int quantity) throws DaoException {
         Connection conn = null;
@@ -386,9 +415,9 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      *
      * Remove a meal from a catering order via a many-to-many (join table) relationship.
      *
-     * @param orderId The catering order id.
-     * @param mealId The meal id.
-     * @throws DaoException any errors that occur with connection, statement, and resultset.
+     * @param int orderId - The catering order id.
+     * @param int mealId - The meal id.
+     * @throws DaoException Any errors that occur during connection, statement, and resultset.
      */
     public void removeMealFromOrder(int orderId, int mealId) throws DaoException {
         Connection conn = null;
@@ -429,8 +458,9 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
      * Needed specific implementation for the method getMultipleRows in the
      * BaseDaoImpl.
      *
-     * @param ResultSet result - the source values from a query to the DB
-     * @param CateringOrderDto dto - the destination Data Transfer Object
+     * @param ResultSet result - The source values from a query to the DB.
+     * @param CateringOrderDto dto - The destination Data Transfer Object.
+     * @throws DaoException Any errors that occur when converting ResultSet to an DTO instance.
      */
     @Override
     protected void convertRStoDto(ResultSet result, CateringOrderDto dto) throws DaoException {
@@ -447,7 +477,7 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
     /**
      * getAllRowsQuery
      *
-     * Returns the query for retrieving all rows for this table
+     * Returns the query for retrieving all rows for this table.
      *
      * @return String - equivalent to "select * from tableName"
      */
@@ -527,22 +557,57 @@ public class CateringOrderDaoImpl extends BaseDaoImpl<CateringOrderDto> implemen
         return _queries.getProperty("GET_BEVERAGES_FOR_ORDER");
     }
 
+    /**
+     * getInsertBeverageToOrderQuery
+     *
+     * Returns the INSERT query for the catering_order_beverages join table.
+     *
+     * @return String - INSERT query
+     */
     private String getInsertBeverageToOrderQuery() {
         return _queries.getProperty("INSERT_BEVERAGE_TO_ORDER");
     }
 
+    /**
+     * getDeleteBeverageFromOrderQuery
+     *
+     * Returns the DELETE query for the catering_order_beverages join table.
+     *
+     * @return String - DELETE query
+     */
     private String getDeleteBeverageFromOrderQuery() {
         return _queries.getProperty("DELETE_BEVERAGE_FROM_ORDER");
     }
 
+    /**
+     * getMealsByOrderIdQuery
+     *
+     * Returns the Meals associated to the Catering Order
+     *
+     * @return String - SELECT query
+     */
     private String getMealsByOrderIdQuery() {
         return _queries.getProperty("GET_MEALS_FOR_ORDER");
     }
 
+    /**
+     * getInsertMealToOrderQuery
+     *
+     * Returns the INSERT query for the catering_order_meals join table.
+     *
+     * @return String - INSERT query
+     */
     private String getInsertMealToOrderQuery() {
         return _queries.getProperty("INSERT_MEAL_TO_ORDER");
     }
 
+    /**
+     * getDeleteMealFromOrderQuery
+     *
+     * Returns the DELETE query for the catering_order_meals join table.
+     *
+     * @return String - DELETE query
+     */
     private String getDeleteMealFromOrderQuery() {
         return _queries.getProperty("DELETE_MEAL_FROM_ORDER");
     }

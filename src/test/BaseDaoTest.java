@@ -18,6 +18,14 @@ import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * BaseDaoTest
+ *
+ * The generic test object that will be inherited by selected entities to test.
+ *
+ * @param <D> - The Data Access Object (DAO).
+ * @param <T> - The Data Transfer Object (DTO).
+ */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
     private static final Logger LOGGER = Logger.getLogger(BaseDaoTest.class.getName());
@@ -186,7 +194,7 @@ public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
      *
      * Utility method to convert the DTO content into a JSON string.
      *
-     * @param dto The Data Transfer Object.
+     * @param T dto - The Data Transfer Object.
      * @return The converted DTO object as JSON.
      */
     protected String proxyToJson(T dto) {

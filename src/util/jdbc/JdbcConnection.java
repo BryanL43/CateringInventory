@@ -14,13 +14,13 @@ import java.util.logging.*;
  * JdbcConnection
  *
  * Helper class to get JDBC connection
- *
  */
 public class JdbcConnection {
     private static final Logger LOGGER = Logger.getLogger(JdbcConnection.class.getName());
 
     private static final Properties props = new Properties();
 
+    // Loads the environment variables
     static {
         Path envFile = Paths.get(System.getProperty("user.dir"), ".env");
 
@@ -32,6 +32,14 @@ public class JdbcConnection {
         }
     }
 
+    /**
+     * createConnection
+     *
+     * Instantiate an individual JDBC connection.
+     *
+     * @return Connection - The JDBC connection to the database.
+     * @throws SQLException Any exceptions that occur with JDBC connection.
+     */
     public static Connection createConnection() throws SQLException {
         String sourceURL = "jdbc:mysql://"
                 + props.getProperty("DB_HOST")

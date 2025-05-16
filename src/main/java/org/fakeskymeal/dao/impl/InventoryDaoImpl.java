@@ -11,11 +11,15 @@ import java.util.logging.Logger;
 import org.fakeskymeal.dao.InventoryDao;
 import org.fakeskymeal.dao.exception.DaoException;
 
-import org.fakeskymeal.dto.FlightDto;
 import org.fakeskymeal.dto.InventoryDto;
 
 import util.jdbc.ConnectionPool;
 
+/**
+ * InventoryDaoImpl
+ *
+ * Implementation for InventoryDao (Data Access Object).
+ */
 public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements InventoryDao {
     private static final Logger LOGGER = Logger.getLogger(InventoryDaoImpl.class.getName());
 
@@ -26,6 +30,7 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
     public InventoryDaoImpl(ConnectionPool pool) {
         super(pool, InventoryDto.class);
 
+        // Load the SQL queries
         _queries = new Properties();
         try {
             _queries.load(
@@ -36,10 +41,31 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
         }
     }
 
+    /**
+     * get
+     *
+     * Method redirect, given a primary key value, will return the corresponding row in DTO
+     * format.
+     *
+     * @param Integer id - The primary key value.
+     * @return the DTO that corresponds to the row with the pKey of id.
+     * @throws DaoException Any errors that occur when retrieving the DTO instance.
+     */
     public InventoryDto get(Integer id) throws DaoException {
         return super.get(id);
     }
 
+    /**
+     * getRow
+     *
+     * Method redirect, given a field and value for a WHERE clause, this method will return
+     * the first row that matches the condition.
+     *
+     * @param String field - Database column name to filter on.
+     * @param Object value - Value for the filter.
+     * @return first DTO that matches "field = value"
+     * @throws DaoException Any errors that occur when retrieving the DTO instance.
+     */
     public InventoryDto getRow(String field, Object value) throws DaoException {
         return super.getRow(field, value);
     }
@@ -50,9 +76,9 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
      * This method is called by the generic save() logic in BaseDaoImpl to bind
      * specific column values (e.g., name) into the SQL INSERT query.
      *
-     * @param stmt the prepared statement to populate
-     * @param dto the Data Transfer Object containing the values to insert
-     * @throws SQLException if a database access error occurs
+     * @param PreparedStatement stmt - The prepared statement to populate.
+     * @param InventoryDto dto - The Data Transfer Object containing the values to insert.
+     * @throws SQLException if a database access error occurs.
      */
     @Override
     protected void prepareInsert(PreparedStatement stmt, InventoryDto dto) throws SQLException {
@@ -67,10 +93,10 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
      * This method binds the new field values from the {@code params} array and the primary key
      * from the {@code dto} to the prepared statement.
      *
-     * @param stmt the prepared statement to populate
-     * @param dto the Data Transfer Object containing the primary key (ID)
-     * @param params an array of new values to apply (e.g., name)
-     * @throws SQLException if a database access error occurs
+     * @param PreparedStatement stmt - The prepared statement to populate.
+     * @param InventoryDto dto - The Data Transfer Object containing the primary key (ID).
+     * @param String[] params - An array of new values to apply (e.g., name).
+     * @throws SQLException if a database access error occurs.
      */
     @Override
     protected void prepareUpdate(PreparedStatement stmt, InventoryDto dto, String[] params) throws SQLException {
@@ -87,8 +113,8 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
      * This method is called after a successful UPDATE operation to synchronize the
      * in-memory DTO with the new values that were written to the database.
      *
-     * @param dto the Data Transfer Object to update
-     * @param params the array of new values (e.g., name)
+     * @param InventoryDto dto - The Data Transfer Object to update.
+     * @param String[] params - An array of new values (e.g., name).
      */
     @Override
     protected void applyParamsToDto(InventoryDto dto, String[] params) {
@@ -103,9 +129,9 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
      * Populates the {@link PreparedStatement} with the primary key needed to delete
      * the specified Data Transfer Object from the database.
      *
-     * @param stmt the prepared statement to populate
-     * @param dto the Data Transfer Object containing the ID to delete
-     * @throws SQLException if a database access error occurs
+     * @param PreparedStatement stmt - The prepared statement to populate
+     * @param InventoryDto dto - The Data Transfer Object containing the ID to delete.
+     * @throws SQLException if a database access error occurs.
      */
     @Override
     protected void prepareDelete(PreparedStatement stmt, InventoryDto dto) throws SQLException {
@@ -118,9 +144,9 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
      * Extracts the generated primary key from the given {@link ResultSet}
      * and assigns it to the Data Transfer Object after a successful INSERT.
      *
-     * @param keys the ResultSet containing generated keys
-     * @param dto the Data Transfer Object to update with the generated ID
-     * @throws SQLException if a database access error occurs or no key is found
+     * @param ResultSet keys - The ResultSet containing generated keys.
+     * @param InventoryDto dto - The Data Transfer Object to update with the generated ID.
+     * @throws SQLException if a database access error occurs or no key is found.
      */
     @Override
     protected void setGeneratedId(ResultSet keys, InventoryDto dto) throws SQLException {
@@ -131,10 +157,11 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
      * getAllByFacilityId
      *
      * Get all corresponding row in the database for the DTO with the filter
-     * of facility id
+     * of facility id.
      *
      * @param String facilityId - The specified facility id.
      * @return The list of inventories that belongs to the specified facility.
+     * @throws DaoException Any errors that occur during connection, statement, and resultset.
      */
     public List<InventoryDto> getAllByFacilityId(int facilityId) throws DaoException {
         Connection conn = null;
@@ -189,8 +216,9 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
      * Needed specific implementation for the method getMultipleRows in the
      * BaseDaoImpl.
      *
-     * @param ResultSet result - the source values from a query to the DB
-     * @param InventoryDto dto - the destination Data Transfer Object
+     * @param ResultSet result - The source values from a query to the DB.
+     * @param InventoryDto dto - The destination Data Transfer Object.
+     * @throws DaoException Any errors that occur when converting ResultSet to an DTO instance.
      */
     @Override
     protected void convertRStoDto(ResultSet result, InventoryDto dto) throws DaoException {
@@ -207,7 +235,7 @@ public class InventoryDaoImpl extends BaseDaoImpl<InventoryDto> implements Inven
     /**
      * getAllRowsQuery
      *
-     * Returns the query for retrieving all rows for this table
+     * Returns the query for retrieving all rows for this table.
      *
      * @return String - equivalent to "select * from tableName"
      */

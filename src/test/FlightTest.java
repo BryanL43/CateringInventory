@@ -124,7 +124,7 @@ public class FlightTest extends BaseDaoTest<FlightDao, FlightDto> {
      *
      * @param stmt The prepared statement object.
      * @param id The p-key id of the test entry.
-     * @throws SQLException Any setString exceptions.
+     * @throws SQLException Any statement set exceptions.
      */
     @Override
     protected void prepareContentionUpdate(PreparedStatement stmt, int id) throws SQLException {

@@ -8,6 +8,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * ConnectionPool
+ *
+ * The connection pool object for managing JDBC connections
+ * to the database.
+ */
 public class ConnectionPool {
     private static final Logger LOGGER = Logger.getLogger(ConnectionPool.class.getName());
     private final BlockingQueue<Connection> pool;
@@ -29,9 +35,11 @@ public class ConnectionPool {
     }
 
     /**
-     * Override getConnection method with a default timeout.
+     * getConnection
      *
-     * @return The JDBC connection.
+     * Method overload getConnection method with a default timeout.
+     *
+     * @return Connection - The JDBC connection.
      * @throws SQLException Any exceptions that occur with JDBC connection.
      */
     public Connection getConnection() throws SQLException {
@@ -39,11 +47,13 @@ public class ConnectionPool {
     }
 
     /**
-     * Acquire a JDBC connection to the database.
+     * getConnection
+     *
+     * Acquire a JDBC connection to the database with a defined timeout duration.
      *
      * @param long timeoutMillis - The set timeout to wait for an available connection.
-     * @return The JDBC connection.
-     * @throws SQLException
+     * @return Connection - The JDBC connection.
+     * @throws SQLException Any exceptions that occur with JDBC connection.
      */
     public Connection getConnection(long timeoutMillis) throws SQLException {
         if (isShutdown) {
@@ -64,9 +74,11 @@ public class ConnectionPool {
     }
 
     /**
+     * releaseConnection
+     *
      * Returns the acquired JDBC connection back to the pool and does not close it.
      *
-     * @param Connection conn The JDBC connection to be released back to the pool.
+     * @param Connection conn - The JDBC connection to be released back to the pool.
      */
     public void releaseConnection(Connection conn) {
         try {
@@ -84,6 +96,8 @@ public class ConnectionPool {
     }
 
     /**
+     * shutdown
+     *
      * Shutdown the connection pool.
      * It closes all the connection within the pool.
      */
