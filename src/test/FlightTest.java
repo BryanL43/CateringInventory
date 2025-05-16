@@ -32,8 +32,8 @@ public class FlightTest extends BaseDaoTest<FlightDao, FlightDto> {
     @Override
     protected FlightDto createTestDto() {
         FlightDto dto = new FlightDto();
-        dto.setAirlineCompanyId(2);
-        dto.setFlightNumber("DL5678");
+        dto.setAirlineCompanyId(1);
+        dto.setFlightNumber("FL1122");
         dto.setDepartureTime(LocalDateTime.now());
         dto.setArrivalTime(LocalDateTime.now().plusHours(2));
         return dto;
@@ -66,7 +66,7 @@ public class FlightTest extends BaseDaoTest<FlightDao, FlightDto> {
      */
     @Override
     protected Object getValidValue() {
-        return 2;
+        return 1;
     }
 
     /**
@@ -87,7 +87,7 @@ public class FlightTest extends BaseDaoTest<FlightDao, FlightDto> {
      */
     @Override
     protected String[] getUpdatedParams() {
-        return new String[] {"2", "DL9101", LocalDateTime.now().toString(), LocalDateTime.now().plusHours(2).toString()};
+        return new String[] {"1", "FL9101", LocalDateTime.now().toString(), LocalDateTime.now().plusHours(2).toString()};
     }
 
     /**
@@ -128,13 +128,13 @@ public class FlightTest extends BaseDaoTest<FlightDao, FlightDto> {
      */
     @Override
     protected void prepareContentionUpdate(PreparedStatement stmt, int id) throws SQLException {
-        stmt.setString(1, "DL6969");
+        stmt.setString(1, "TS1234");
         stmt.setInt(2, id);
     }
 
     @Test
     void testAcquireAllFlightsFromAirlineByName() throws DaoException {
-        String companyName = "Delta";
+        String companyName = "Test Airline";
 
         List<FlightDto> flightDtos = flightDao.getFlightsByAirlineName(companyName);
 

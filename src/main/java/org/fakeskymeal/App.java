@@ -43,12 +43,12 @@ public class App {
             FlightDao flightDao = new FlightDaoImpl(pool);
 
             // Load an existing flight
-            int flightId = 1;
+            int flightId = 3;
             FlightDto flight = flightDao.get(flightId);
-            System.out.println("Using flight: " + flight.getFlightId());
+            System.out.println("Using flight: " + flight.getFlightNumber());
 
             // Load an existing beverage
-            int beverageId = 1;
+            int beverageId = 2;
             BeverageDto beverage = beverageDao.get(beverageId);
             System.out.println("Using beverage: " + beverage.getName());
 
@@ -57,8 +57,10 @@ public class App {
             MealDto meal = mealDao.get(mealId);
             System.out.println("Using meal: " + meal.getName());
 
+            System.out.println();
+
             // Create new catering order
-            int facilityId = 1;
+            int facilityId = 2;
             CateringOrderDto newOrder = new CateringOrderDto();
             newOrder.setFlightId(flightId);
             newOrder.setFacilityId(facilityId);

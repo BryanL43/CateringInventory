@@ -37,7 +37,7 @@ public class CateringOrderTest extends BaseDaoTest<CateringOrderDao, CateringOrd
     @Override
     protected CateringOrderDto createTestDto() {
         CateringOrderDto dto = new CateringOrderDto();
-        dto.setFlightId(2);
+        dto.setFlightId(1);
         dto.setFacilityId(1);
         dto.setDeliveryTime(LocalDateTime.now());
         return dto;
@@ -91,7 +91,7 @@ public class CateringOrderTest extends BaseDaoTest<CateringOrderDao, CateringOrd
      */
     @Override
     protected String[] getUpdatedParams() {
-        return new String[] {"1", "1", LocalDateTime.now().toString()};
+        return new String[] {"2", "1", LocalDateTime.now().toString()};
     }
 
     /**
@@ -131,7 +131,7 @@ public class CateringOrderTest extends BaseDaoTest<CateringOrderDao, CateringOrd
      */
     @Override
     protected void prepareContentionUpdate(PreparedStatement stmt, int id) throws SQLException {
-        stmt.setInt(1, 2);
+        stmt.setInt(1, 1);
         stmt.setInt(2, id);
     }
 }

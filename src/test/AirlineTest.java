@@ -35,7 +35,7 @@ public class AirlineTest extends BaseDaoTest<AirlineDao, AirlineDto> {
     @Override
     protected AirlineDto createTestDto() {
         AirlineDto dto = new AirlineDto();
-        dto.setAirlineName("Test Airline");
+        dto.setAirlineName("Test CRUD Airline");
         dto.setContactInfo("Test@example.com");
         return dto;
     }
@@ -127,7 +127,7 @@ public class AirlineTest extends BaseDaoTest<AirlineDao, AirlineDto> {
      */
     @Override
     protected void prepareContentionUpdate(PreparedStatement stmt, int id) throws SQLException {
-        stmt.setString(1, "Admins Test Airline");
+        stmt.setString(1, "Test Airline");
         stmt.setString(2, "Admin@example.com");
         stmt.setInt(3, id);
     }

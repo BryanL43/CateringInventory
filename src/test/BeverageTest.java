@@ -38,8 +38,8 @@ public class BeverageTest extends BaseDaoTest<BeverageDao, BeverageDto> {
     protected BeverageDto createTestDto() {
         BeverageDto dto = new BeverageDto();
         dto.setInventoryId(1);
-        dto.setName("Test Beverage");
-        dto.setBrand("Test Brand");
+        dto.setName("Test CRUD Beverage");
+        dto.setBrand("Test CRUD Brand");
         dto.setQuantity(5);
         dto.setWeight(3.27F);
         dto.setDeliveredDate(new Date(System.currentTimeMillis()));
@@ -49,7 +49,7 @@ public class BeverageTest extends BaseDaoTest<BeverageDao, BeverageDto> {
         Date futureDate = new Date(cal.getTimeInMillis());
         dto.setExpirationDate(futureDate);
 
-        dto.setDescription("Test Description");
+        dto.setDescription("Test CRUD Description");
         return dto;
     }
 
@@ -80,7 +80,7 @@ public class BeverageTest extends BaseDaoTest<BeverageDao, BeverageDto> {
      */
     @Override
     protected Object getValidValue() {
-        return "Bloxy";
+        return "Test Brand";
     }
 
     /**
@@ -155,7 +155,7 @@ public class BeverageTest extends BaseDaoTest<BeverageDao, BeverageDto> {
      */
     @Override
     protected void prepareContentionUpdate(PreparedStatement stmt, int id) throws SQLException {
-        stmt.setString(1, "Cola Test");
+        stmt.setString(1, "Test Beverage");
         stmt.setInt(2, id);
     }
 }
