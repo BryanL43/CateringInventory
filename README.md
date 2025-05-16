@@ -15,7 +15,7 @@ cd <your-repo-name>
 ```
 
 2. **Set up environment variables:**
-Create a `.env` file in the root directory and add your database's environment:
+   Create a `.env` file in the root directory and add your database's environment:
  ```ini
 DB_HOST=your_rds_hostname
 DB_PORT=your_port
@@ -72,6 +72,7 @@ version: 1.9.1
 
 ## Troubleshooting
 - Ensure the `.env` file is configured correctly.
+- Ensure Java version `24` is installed (configurable in `pom.xml`).
 - If the project is configured with the `.iml` format file, simply reopen the project to refresh cache.
 - Ensure `src/` directory is marked as `Sources Root`.
 - Ensure `src/main/resources/` is marked as `Resources Root`.

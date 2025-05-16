@@ -60,15 +60,24 @@ public class ConnectionPool {
             throw new IllegalStateException("Connection pool is already shut down");
         }
 
+        final long deadline = System.currentTimeMillis() + timeoutMillis;
+
         try {
-            Connection conn = pool.poll(timeoutMillis, TimeUnit.MILLISECONDS);
-            if (conn == null) {
-                throw new SQLException("Timeout while waiting for a database connection");
+            while (true) {
+                long remaining = deadline - System.currentTimeMillis();
+                if (remaining <= 0) {
+                    throw new SQLException("Timeout while waiting for a database connection");
+                }
+
+                Connection conn = pool.poll(Math.min(remaining, 100), TimeUnit.MILLISECONDS);
+                if (conn != null) {
+                    return conn;
+                }
+
+                Thread.yield();
             }
-            return conn;
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            LOGGER.warning("Interrupted while waiting for a connection");
             throw new SQLException("Interrupted while waiting for a connection", ex);
         }
     }

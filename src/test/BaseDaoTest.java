@@ -106,19 +106,32 @@ public abstract class BaseDaoTest<D extends BaseDao<T>, T> {
         } finally {
             // Workaround to auto incrementing on CRUD testing
             if (inserted && originalAutoIncrement > 0) {
-                String sql = "ALTER TABLE " + ((BaseDaoImpl<?>) getDao()).getTableName() + " AUTO_INCREMENT = ?";
+                Connection conn = null;
+                PreparedStatement stmt = null;
 
-                try (Connection conn = pool.getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                try {
+                    conn = pool.getConnection();
+                    String sql = "ALTER TABLE " + ((BaseDaoImpl<?>) getDao()).getTableName() + " AUTO_INCREMENT = ?";
+                    stmt = conn.prepareStatement(sql);
 
-                    pstmt.setInt(1, originalAutoIncrement);
-                    pstmt.executeUpdate();
-
+                    stmt.setInt(1, originalAutoIncrement);
+                    stmt.executeUpdate();
                 } catch (SQLException se) {
                     System.err.println("Failed to reset AUTO_INCREMENT: " + se.getMessage());
+                } finally {
+                    if (stmt != null) {
+                        try {
+                            stmt.close();
+                        } catch (SQLException se) {
+                            LOGGER.log(Level.WARNING, "Error closing Statement: ", se.getMessage());
+                        }
+                    }
+
+                    if (conn != null) {
+                        pool.releaseConnection(conn);
+                    }
                 }
             }
-
         }
     }
 
