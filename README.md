@@ -32,7 +32,7 @@ src/main/resources/PopulateDatabase.sql # Populate the tables with test cases an
 ```
 
 
-## Run the Program
+## Run the Program (IntelliJ)
 1. Run the following file with main to create a sample catering order:
 ```ini
 src/main/java/App.java
